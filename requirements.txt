@@ -1,0 +1,25 @@
+# Django Core
+Django==5.0.0
+gunicorn==21.2.0  # For production deployment
+
+# Database/Environment
+python-dotenv==1.0.1  # For secure environment variable handling
+
+# QR Code Generation
+Pillow==10.1.0
+qrcode==7.4.2
+# The 'qrcode' package generates the QR code image
+
+# M-Pesa Integration
+# We'll use a reliable, community-maintained library for M-Pesa Daraja API integration.
+django-mpesa==2.0.14
+
+# BTC Integration (Placeholder for now, implementation often uses external payment services like Coinbase/Binance APIs)
+# We will decide on the best integration method (e.g., a simple API client) when we reach this feature.
+
+# Styling & Frontend
+# We will use an external method (CDN or build process) for high-end CSS (like Tailwind/Bootstrap),
+# but keep it out of the core Python requirements for now.
+
+# Security
+django-cors-headers==4.3.1
