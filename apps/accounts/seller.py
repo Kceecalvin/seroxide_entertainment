@@ -141,6 +141,7 @@ def render_editor(request, event, form=None, invalid_tier_form=None, invalid_tie
                      else TicketTypeForm(auto_id='tier_new_%s', initial={'name': 'Regular'}),
         'ticket_errors': invalid_tier_form is not None,
         'theme_options': [
+            ('poster', 'From your poster', 'Import your colours or fine-tune them.'),
             ('classic', 'SeroTix signature', 'Blue, red & gold. The original.'),
             ('after-dark', 'After Dark', 'Crimson accents. Late-night energy.'),
             ('coastal', 'Coastal', 'Sea-glass teal. Open-air days.'),

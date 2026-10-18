@@ -21,7 +21,7 @@ apt-get update -qq
 apt-get install -y -qq \
     python3 python3-venv python3-pip \
     postgresql postgresql-contrib \
-    nginx \
+    nginx tesseract-ocr tesseract-ocr-eng \
     git \
     certbot python3-certbot-nginx \
     ufw

@@ -6,11 +6,15 @@ from apps.events.models import Event
 
 class SellerEventForm(EventForm):
     class Meta(EventForm.Meta):
-        fields = [f for f in EventForm.Meta.fields if f not in ('is_published', 'is_featured')] + ['theme']
+        fields = [f for f in EventForm.Meta.fields if f not in ('is_published', 'is_featured')] + ['theme', 'poster_accent', 'poster_secondary']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['theme'].required = False
+        for name, label in [('poster_accent', 'Main poster colour'), ('poster_secondary', 'Second poster colour')]:
+            self.fields[name].required = False
+            self.fields[name].label = label
+            self.fields[name].widget = forms.TextInput(attrs={'type': 'color'})
         labels = {'title': 'Event name', 'description': 'What should guests expect?',
                   'start_at': 'Starts (Nairobi time)', 'end_at': 'Ends (Nairobi time)',
                   'organizer_name': 'Organizer name', 'cover_image': 'Event poster / cover'}
@@ -20,6 +24,12 @@ class SellerEventForm(EventForm):
         self.fields['cover_image'].widget.attrs['accept'] = 'image/jpeg,image/png,image/webp'
         self.fields['title'].widget.attrs['placeholder'] = 'e.g. Nairobi Live Sessions'
         self.fields['description'].widget.attrs['placeholder'] = 'The experience, who it’s for, and what’s included.'
+
+    def clean_poster_accent(self):
+        return self.cleaned_data.get('poster_accent') or self.instance.poster_accent or '#e6ba70'
+
+    def clean_poster_secondary(self):
+        return self.cleaned_data.get('poster_secondary') or self.instance.poster_secondary or '#255bea'
 
     def clean_theme(self):
         return self.cleaned_data.get('theme') or Event.Theme.CLASSIC

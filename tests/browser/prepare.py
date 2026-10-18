@@ -101,6 +101,10 @@ def prepare():
         order=Order.objects.create(event=target,status='paid',buyer_name='Gate fixture',buyer_phone='254700000099',total_amount=2000.50)
         item=OrderItem.objects.create(order=order,ticket_type=tier,quantity=1,unit_price=2000.50)
         Ticket.objects.create(order_item=item,serial=UUID(serial))
+    from apps.accounts.test_posters import poster_file
+    Path('/tmp/serotix-browser-poster.png').write_bytes(poster_file().read())
+    promo_admin=User.objects.create_user('promo-admin', 'promo-admin@example.test', 'BrowserGate123!')
+    AccountProfile.objects.create(user=promo_admin, role='admin')
     print('Browser fixtures ready in /tmp/serotix-browser-tests.sqlite3; all payments simulated.')
 
 

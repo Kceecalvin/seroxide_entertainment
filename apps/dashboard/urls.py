@@ -4,6 +4,7 @@ from django.urls import path
 from apps.core.ratelimit import ratelimit
 
 from . import views, operations
+from apps.accounts import promotions
 
 app_name = 'dashboard'
 
@@ -15,6 +16,8 @@ _login_view = ratelimit(key_prefix='dashboard-login', limit=20, window_seconds=6
 )
 
 urlpatterns = [
+    path('promotions/', promotions.enquiries, name='promotions'),
+    path('promotions/<int:pk>/', promotions.update_status, name='promotion_update'),
     path('team/', operations.team, name='team'),
     path('reviews/', operations.reviews, name='reviews'),
     path('reviews/<int:pk>/', operations.review, name='review'),

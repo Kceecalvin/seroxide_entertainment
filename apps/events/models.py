@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -18,6 +19,7 @@ class EventCategory(models.TextChoices):
 
 class Event(models.Model):
     class Theme(models.TextChoices):
+        POSTER = 'poster', 'From your poster'
         CLASSIC = 'classic', 'SeroTix signature'
         AFTER_DARK = 'after-dark', 'After Dark'
         COASTAL = 'coastal', 'Coastal'
@@ -25,6 +27,16 @@ class Event(models.Model):
         ELECTRIC = 'electric', 'Electric'
 
     theme = models.CharField(max_length=16, choices=Theme.choices, default=Theme.CLASSIC)
+    poster_accent = models.CharField(max_length=7, default='#e6ba70', validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$', 'Choose a valid hex colour.')])
+    poster_secondary = models.CharField(max_length=7, default='#255bea', validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$', 'Choose a valid hex colour.')])
+
+    @property
+    def poster_theme_style(self):
+        if self.theme != self.Theme.POSTER:
+            return ''
+        from .palettes import poster_style
+        return poster_style(self.poster_accent, self.poster_secondary)
+
 
     class ReviewStatus(models.TextChoices):
         DRAFT = 'draft', 'Draft'
@@ -153,3 +165,31 @@ class EventReview(models.Model):
     status = models.CharField(max_length=12, choices=Event.ReviewStatus.choices)
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PromotionRequest(models.Model):
+    class Status(models.TextChoices):
+        NEW = 'new', 'Offer requested'
+        CONTACTED = 'contacted', 'Team has followed up'
+        CLOSED = 'closed', 'Closed'
+
+    event = models.ForeignKey(Event, on_delete=models.PROTECT, related_name='promotion_requests')
+    organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='promotion_requests')
+    submission_id = models.UUIDField(unique=True)
+    platforms = models.JSONField(default=list)
+    email = models.EmailField()
+    budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    audience = models.CharField(max_length=200)
+    notes = models.TextField(blank=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.NEW)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def platform_labels(self):
+        labels = {'instagram':'Instagram', 'facebook':'Facebook', 'tiktok':'TikTok', 'serotix':'SeroTix placement'}
+        return ', '.join(labels.get(value, value) for value in self.platforms)

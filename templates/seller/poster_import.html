@@ -1,0 +1,17 @@
+<fieldset class="studio-fieldset studio-poster-import" data-poster-import data-import-url="{% url 'accounts:poster_import' %}">
+  <legend>Start with your poster</legend>
+  <p class="market-muted">Your artwork sets the mood. Upload it to read the event details and bring its colours into your page.</p>
+  {% include 'seller/field.html' with field=form.cover_image %}
+  <button type="button" class="button button-outline" data-read-poster hidden>Read poster & import colours ↗</button>
+  <p class="market-muted" role="status" data-import-status></p>
+  <section class="poster-review" data-import-review hidden aria-label="Review poster suggestions">
+    <div class="poster-review-heading"><div><p class="eyebrow gold">YOUR POSTER, DECODED</p><h3>Keep what’s right. Change the rest.</h3></div><span aria-hidden="true">✦</span></div>
+    <p class="market-muted" data-import-note></p>
+    <div class="poster-review-art"><img data-import-image alt="Full uploaded poster" hidden><div><h4>Colours found in your artwork</h4><div class="poster-swatches" data-import-swatches></div><label class="market-consent"><input type="checkbox" data-apply-colours checked> <span>Use these colours for this event’s theme</span></label><p class="market-muted">Text and button colours are adjusted for readability. You can fine-tune the colours below.</p></div></div>
+    <div class="poster-suggestions" data-import-fields></div>
+    <p class="market-muted" data-import-prices></p>
+    <details><summary>Read all detected text</summary><textarea rows="7" readonly aria-label="Detected poster text" data-import-text></textarea></details>
+    <button type="button" class="button button-primary" data-apply-poster>Use selected suggestions</button>
+    <p class="market-muted">This fills your draft form. Save the draft to keep your changes. Existing details are only replaced when you select them.</p>
+  </section>
+</fieldset>

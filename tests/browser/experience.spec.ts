@@ -162,7 +162,7 @@ test('HTML fallback can purchase when JavaScript is disabled', async ({ browser 
   await form.getByRole('button', { name: 'Pay with M-Pesa' }).click();
   await expect(page).toHaveURL(/\/tickets\/order\/SRX-.*\/success\//);
   await expect(page.getByRole('img', { name: 'Ticket QR code' })).toBeVisible();
-  void context.close().catch(() => undefined);
+  await context.close();
 });
 
 test('vibe quiz finds relevant real events and squad picks survive a reload', async ({ page }) => {

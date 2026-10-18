@@ -7,12 +7,13 @@
 {% block og_image %}{% if event_image_url %}<meta property="og:image" content="{{ event_image_url }}">{% endif %}{% endblock %}
 {% block body_class %}event-detail-page{% endblock %}
 {% block content %}
-<div class="event-theme theme-{{ event.theme }}">
+<div class="event-theme theme-{{ event.theme }}" style="{{ event.poster_theme_style }}">
 <script type="application/ld+json">{{ event_json_ld|safe }}</script>
 <section class="detail-masthead shell">
   <div class="detail-breadcrumb"><a href="{% url 'events:list' %}#events">← Discover events</a><span>{{ event.get_category_display }} / {{ event.city }}</span></div>
   <div class="detail-hero"><div class="detail-hero-image">{% if event.cover_image %}<img src="{{ event.cover_image.url }}" alt="{{ event.title }}" fetchpriority="high" width="1400" height="800">{% else %}<img src="{% static 'img/hero/slide-1.jpg' %}" alt="" width="1920" height="1280">{% endif %}</div><div class="detail-hero-shade"></div><div class="detail-hero-content"><span class="eyebrow">{% if event.is_past %}PAST EXPERIENCE{% else %}YOUR NEXT “I WAS THERE.”{% endif %}</span><h1>{{ event.title }}</h1><p><svg class="icon"><use href="#i-pin"/></svg>{{ event.venue }}, {{ event.city }}</p></div><div class="detail-date"><strong>{{ event.start_at|date:'d' }}</strong><span>{{ event.start_at|date:'M Y' }}</span></div></div>
   <div class="detail-meta"><span><svg class="icon"><use href="#i-calendar"/></svg>{{ event.start_at|date:'l, d F Y' }} <b>·</b> {{ event.start_at|date:'g:i A' }} EAT</span><div><span class="category-label" data-cat="{{ event.category }}">{{ event.get_category_display }}</span><button type="button" class="share-button" data-share data-title="{{ event.title }}"><svg class="icon"><use href="#i-share"/></svg> Share event</button><span class="share-status sr-only" role="status"></span></div></div>
+{% if event.cover_image %}<details class="event-full-poster"><summary>View the full event poster ↗</summary><img src="{{ event.cover_image.url }}" alt="Full poster for {{ event.title }}" loading="lazy"></details>{% endif %}
 </section>
 <section class="shell detail-layout">
   <div class="detail-story">

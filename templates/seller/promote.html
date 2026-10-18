@@ -1,0 +1,33 @@
+{% extends 'base.html' %}{% load static humanize %}
+{% block title %}Promote {{ event.title }}{% endblock %}
+{% block content %}
+<section class="shell market-shell studio-workspace promotion-workspace">
+  <a class="studio-back" href="{% url 'accounts:seller_edit' event.pk %}">← Back to {{ event.title }}</a>
+  <header class="studio-welcome"><div><p class="eyebrow gold">YOUR EVENT / A BIGGER AUDIENCE</p><h1>Give your poster<br><em>a bigger stage.</em></h1><p>Turn your artwork into a shareable advert. Then find a promotion offer that fits your crowd.</p></div><div class="promotion-platforms" aria-label="Promotion channels"><span>Instagram</span><span>Facebook</span><span>TikTok</span><span>SeroTix</span></div></header>
+  <div class="market-editor-grid">
+    <section class="market-panel"><p class="eyebrow gold">01 / YOUR CREATIVE</p><h2>Made from your event.</h2>
+      <p class="market-muted">Your poster stays uncropped. Exports use your saved colours and details. Published events include a scannable event link in the download. These previews do not publish ads.</p>
+      <div class="promotion-artboard event-theme theme-{{ event.theme }}" style="{{ event.poster_theme_style }}" data-ad-board>
+        <div class="promotion-ad-brand">{{ event.organizer_name }} <span>on serotix</span></div>
+        <div class="promotion-ad-poster">{% if event.cover_image %}<img src="{{ event.cover_image.url }}" alt="{{ event.title }} poster" data-ad-image>{% else %}<span>Add a poster in your event studio to create your advert.</span>{% endif %}</div>
+        <div class="promotion-ad-copy"><span class="eyebrow">{{ event.get_category_display }} · {{ event.city }}</span><h3>{{ event.title }}</h3><p>{{ event.start_at|date:'d M Y · g:i A' }} EAT<br>{{ event.venue }}</p><strong>{% if event.is_past %}Event recap{% elif event.is_published %}Explore the event ↗{% else %}Coming soon{% endif %}</strong></div>
+      </div>
+      {% if event.cover_image %}<div class="promotion-export" data-ad-exports hidden><button type="button" class="button button-primary" data-export-size="square">Download square advert</button><button type="button" class="button button-outline" data-export-size="story">Download story advert</button></div>{% endif %}
+      <p role="status" class="market-muted" data-export-status></p>
+      <label class="promotion-caption-label" for="promotion-caption">Your sharing caption</label><textarea id="promotion-caption" rows="9" readonly>{{ caption }}</textarea><button type="button" class="button button-outline" data-copy-caption hidden>Copy caption</button><p role="status" class="market-muted" data-copy-status></p>
+      {% if not event.is_published %}<p class="market-muted">This is a private draft. The caption will include a public event link once your listing is published.</p>{% endif %}
+    </section>
+    <div>
+      <form method="post" class="market-panel market-form promotion-offer-form">{% csrf_token %}{{ form.submission_token }}<p class="eyebrow gold">02 / FIND YOUR PROMOTION OFFER</p><h2>The right push for your crowd.</h2><p class="market-muted">Choose your channels and tell us your goal. The team will propose a plan and price for you to review.</p>{{ form.non_field_errors }}{{ form.submission_token.errors }}
+        <fieldset class="studio-fieldset promotion-channel-options"><legend>{{ form.platforms.label }}</legend>{{ form.platforms }}{{ form.platforms.errors }}</fieldset>
+        {% include 'seller/field.html' with field=form.audience %}{% include 'seller/field.html' with field=form.budget %}{% include 'seller/field.html' with field=form.email %}{% include 'seller/field.html' with field=form.notes %}
+        <div class="promotion-terms"><strong>Your plan, agreed first.</strong><p>Submitting asks for an offer. It does not book a campaign, charge your budget or guarantee reach or ticket sales. Placements, creative, ad spend and any service fee are confirmed separately.</p></div>
+        <button class="button button-primary" type="submit">Request my promotion offer ↗</button>
+      </form>
+      <section class="market-panel"><p class="eyebrow gold">YOUR REQUESTS</p><h2>Keep track of the conversation.</h2>{% for enquiry in enquiries %}<article class="promotion-request"><div><strong>#{{ enquiry.pk }} · {{ enquiry.get_status_display }}</strong><span>{{ enquiry.created_at|date:'d M Y, g:i A' }}</span></div><p>{{ enquiry.platform_labels }}</p><p class="market-muted">{% if enquiry.budget is not None %}Budget guide: KES {{ enquiry.budget|floatformat:2|intcomma }}{% else %}Budget to discuss{% endif %} · {{ enquiry.audience }}</p></article>{% empty %}<p class="market-muted">Your submitted promotion enquiries will appear here.</p>{% endfor %}<p class="studio-support">Talk to the team: <a href="tel:+254119300000">0119300000 ↗</a></p></section>
+    </div>
+  </div>
+</section>
+{{ advert_data|json_script:'promotion-ad-data' }}
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'js/promotion-studio.js' %}" defer></script>{% endblock %}

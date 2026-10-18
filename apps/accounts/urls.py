@@ -3,7 +3,7 @@ from django.urls import path, reverse_lazy
 
 from apps.core.ratelimit import ratelimit
 
-from . import views, seller, gates
+from . import views, seller, gates, posters, promotions
 from .forms import AccountAuthenticationForm, TrackedPasswordResetForm
 
 app_name = 'accounts'
@@ -15,6 +15,7 @@ _login_view = ratelimit(key_prefix='buyer-login', limit=20, window_seconds=600)(
 )
 
 urlpatterns = [
+    path('studio/poster-import/', posters.analyse, name='poster_import'),
     path('studio/<int:pk>/gate-team/', gates.team, name='gate_team'),
     path('studio/<int:pk>/gate-team/<int:assignment_id>/revoke/', gates.revoke, name='gate_revoke'),
     path('studio/<int:pk>/gate-invites/<int:invitation_id>/revoke/', gates.revoke_invite, name='gate_invite_revoke'),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('studio/', seller.home, name='seller_home'),
     path('studio/new/', seller.edit_event, name='seller_create'),
     path('studio/<int:pk>/', seller.edit_event, name='seller_edit'),
+    path('studio/<int:pk>/promote/', promotions.workspace, name='seller_promote'),
     path('studio/<int:pk>/preview/', seller.preview, name='seller_preview'),
     path('studio/<int:pk>/tickets/', seller.save_tier, name='seller_tier'),
     path('studio/<int:pk>/tickets/<int:tier_id>/', seller.save_tier, name='seller_tier_edit'),

@@ -11,13 +11,23 @@
     });
   });
   const poster = document.querySelector('[data-studio-poster]');
-  document.querySelectorAll('input[name="theme"]').forEach(input => {
-    input.addEventListener('change', () => {
-      if (!poster || !input.checked) return;
-      Array.from(poster.classList).filter(name => name.startsWith('theme-')).forEach(name => poster.classList.remove(name));
-      poster.classList.add('theme-' + input.value);
-    });
-  });
+  const colours = ['poster_accent', 'poster_secondary'].map(name => document.querySelector(`[name="${name}"]`));
+  function updatePosterTheme() {
+    const selected = document.querySelector('input[name="theme"]:checked');
+    if (!poster || !selected) return;
+    Array.from(poster.classList).filter(name => name.startsWith('theme-')).forEach(name => poster.classList.remove(name));
+    poster.classList.add('theme-' + selected.value);
+    poster.removeAttribute('style');
+    if (selected.value === 'poster' && window.SeroTixPosterPalette) {
+      const palette = window.SeroTixPosterPalette(colours[0]?.value, colours[1]?.value);
+      Object.entries(palette).forEach(([key,value]) => poster.style.setProperty(key,value));
+      const swatch = document.querySelector('.studio-theme-option.theme-poster');
+      Object.entries(palette).forEach(([key,value]) => swatch?.style.setProperty(key,value));
+    }
+  }
+  document.querySelectorAll('input[name="theme"]').forEach(input => input.addEventListener('change', updatePosterTheme));
+  colours.forEach(input => input?.addEventListener('input', updatePosterTheme));
+  updatePosterTheme();
   const dirtyForms = new Set();
   document.querySelectorAll('.studio-workspace form[method="post"]').forEach(form => {
     form.addEventListener('input', () => {
