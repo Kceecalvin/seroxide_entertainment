@@ -23,7 +23,7 @@ SITE_NAME = os.getenv('SITE_NAME', 'SeroTix')
 SITE_TAGLINE = os.getenv('SITE_TAGLINE', 'Tickets to Kenya’s best nights out.')
 SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'serotix.co.ke')
 SITE_SUPPORT_EMAIL = os.getenv('SITE_SUPPORT_EMAIL', 'support@serotix.co.ke')
-SITE_SUPPORT_PHONE = os.getenv('SITE_SUPPORT_PHONE', '0119 300000')
+SITE_SUPPORT_PHONE = os.getenv('SITE_SUPPORT_PHONE', '0119300000')
 _support_digits = ''.join(c for c in SITE_SUPPORT_PHONE if c.isdigit())
 SITE_SUPPORT_PHONE_TEL = '+' + ('254' + _support_digits[1:] if _support_digits.startswith('0') else _support_digits)
 

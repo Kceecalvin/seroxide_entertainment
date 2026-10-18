@@ -15,7 +15,7 @@ confirmations. Organizer transfers remain manual until merchant/subaccount setup
 verified organizer settlement details, refund recovery terms and payout timing are
 agreed. This release does not initiate transfers or activate checkout.
 
-Official support phone: 0119 300000, click-to-call +254119300000. Set the production
+Official support phone: 0119300000, click-to-call +254119300000. Set the production
 SITE_SUPPORT_PHONE accordingly. A phone number alone does not establish WhatsApp
 availability; existing optional social links are retained. The sender inbox is
 unchanged and still requires owner-controlled delivery/reply acceptance.

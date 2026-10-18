@@ -302,7 +302,7 @@ class CommissionTests(TestCase):
         _deliver_order_confirmation(order)
         message = mail.outbox[-1]
         self.assertIn('Payment processing included.', message.body)
-        self.assertIn('0119 300000', message.body)
+        self.assertIn('0119300000', message.body)
         self.assertIn('tel:+254119300000', message.alternatives[0].content)
         self.assertNotIn('Service fee:', message.body)
         order.service_fee = Decimal('80.00')
