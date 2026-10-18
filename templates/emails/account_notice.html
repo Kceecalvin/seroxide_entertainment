@@ -1,0 +1,4 @@
+{% extends 'emails/base.html' %}
+{% block preheader %}{{ heading }}{% endblock %}
+{% block body %}<tr><td class="email-pad" style="padding:36px;color:#f4f1e9;"><p style="color:#e6ba70;font-size:11px;letter-spacing:2px;">YOUR SEROTIX ACCOUNT</p><h1 class="email-title" style="font-size:36px;line-height:1.15;margin:16px 0;">{{ heading }}</h1><p style="font-size:16px;line-height:1.8;color:#c5d4ed;">{{ message|linebreaksbr }}</p><p style="margin:28px 0;"><a class="email-button" href="{{ action_url }}" style="display:inline-block;background:#3979ff;color:white;padding:16px 24px;text-decoration:none;border-radius:24px;font-weight:bold;">Open SeroTix →</a></p><p style="font-size:12px;line-height:1.7;color:#a7b3c9;">If the button does not work, open:<br><a href="{{ action_url }}" style="color:#9ab7ec;word-break:break-all;">{{ action_url }}</a></p></td></tr>{% endblock %}
+{% block reason %}This is a service update about your SeroTix account or event.{% endblock %}

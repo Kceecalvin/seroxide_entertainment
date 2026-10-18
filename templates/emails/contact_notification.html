@@ -1,0 +1,5 @@
+{% extends 'emails/base.html' %}
+{% block title %}New enquiry — {{ contact.subject|default:'SeroTix' }}{% endblock %}
+{% block preheader %}{{ contact.name }} sent a message: {{ contact.subject|default:'New enquiry' }}{% endblock %}
+{% block body %}<tr><td class="email-pad" style="padding:36px;"><p style="font-size:10px;color:#8eb0ff;letter-spacing:2px;margin:0 0 15px;">FROM YOUR CONTACT DESK</p><h1 class="email-title" style="font-size:32px;color:#f4f1e9;margin:0 0 22px;">{{ contact.subject|default:'A new conversation.' }}</h1><p style="font-size:14px;line-height:1.8;color:#bcc8db;margin:0 0 22px;"><strong style="color:#f4f1e9;">{{ contact.name }}</strong><br>{{ contact.email }}</p><div style="font-size:14px;line-height:1.9;color:#d1daea;border-left:3px solid #3979ff;padding:0 0 0 20px;">{{ contact.message|linebreaks }}</div><p style="font-size:11px;color:#a7b3c9;margin:25px 0 0;">A copy is saved in the admin contact inbox.</p></td></tr>{% endblock %}
+{% block reason %}This is an internal notification of a message submitted on {{ site_name }}.{% endblock %}

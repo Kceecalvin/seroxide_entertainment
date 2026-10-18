@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy{% endblock %}
+{% block body_class %}legal-page app-utility{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+  <p class="text-xs font-bold uppercase tracking-widest text-accent">Legal</p>
+  <h1 class="font-poster mt-1 text-4xl">Privacy Policy</h1>
+  <p class="mt-2 text-sm text-zinc-500">Last updated 18 October 2026</p>
+
+  <div class="prose prose-invert mt-8 max-w-none space-y-6 text-sm leading-relaxed text-zinc-300">
+    <p>
+      {{ SITE_NAME }} ("we", "us") is a ticketing platform operated for events in Kenya. This
+      policy explains what personal data we collect when you buy a ticket or create an account,
+      why we collect it, who we share it with, and your rights under Kenya's Data Protection Act,
+      2019 ("the DPA").
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">1. What we collect</h2>
+    <ul class="list-disc space-y-1 pl-5">
+      <li><strong class="text-white">To buy a ticket (guest or account):</strong> your full name, phone number, and email address if you provide one.</li>
+      <li><strong class="text-white">If you create an account:</strong> your name, email address, and a password (stored as a salted hash — we never store or can see your actual password).</li>
+      <li><strong class="text-white">Payment:</strong> for M-Pesa, your phone number is passed to Safaricom to trigger the STK push — we never see or store your M-Pesa PIN. For card payments, you're redirected to Paystack's own secure checkout page; your card number never reaches our servers or database at any point.</li>
+      <li><strong class="text-white">Order and ticket records:</strong> which event and ticket type you bought, the amount paid, and a unique ticket serial number encoded in your QR code (the QR code itself contains no personal data — just that serial number).</li>
+    </ul>
+
+    <h2 class="font-display text-lg font-bold text-white">2. Why we collect it</h2>
+    <ul class="list-disc space-y-1 pl-5">
+      <li>To process your payment and issue a valid, scannable ticket.</li>
+      <li>To let you look up or manage your tickets (via guest lookup or your account).</li>
+      <li>To email your ticket confirmation and QR code, if you provide an email address.</li>
+      <li>To check you in at the event door.</li>
+      <li>To meet Kenyan financial record-keeping and tax obligations.</li>
+    </ul>
+
+    <h2 class="font-display text-lg font-bold text-white">3. Who we share it with</h2>
+    <p>We share the minimum necessary with:</p>
+    <ul class="list-disc space-y-1 pl-5">
+      <li><strong class="text-white">Safaricom</strong> (M-Pesa/Daraja) — your phone number and the amount due, to process payment.</li>
+      <li><strong class="text-white">Paystack</strong> — your email (if provided) and order amount, to process card payments. Paystack's own privacy policy governs the card details you enter on their page.</li>
+      <li><strong class="text-white">The event organizer</strong> — your name and ticket type, so they can plan and staff their event. We do not share your account password, payment details, or contact information beyond what's needed for that specific event.</li>
+    </ul>
+    <p>We do not sell your data, and we do not share it with advertisers.</p>
+
+    <h2 class="font-display text-lg font-bold text-white">4. How long we keep it</h2>
+    <p>
+      Order and payment records are kept for as long as Kenyan tax and financial record-keeping
+      law requires. Account data (name, email, login) is kept while your account is active and
+      deleted on request, except where we're required to retain linked transaction records for
+      that same legal period.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">5. Cookies</h2>
+    <p>
+      We use only strictly-necessary cookies: one to keep you signed in, and one for security
+      (CSRF protection) on forms. We don't use third-party advertising or tracking cookies.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">6. Your rights under the DPA</h2>
+    <p>You can ask us to:</p>
+    <ul class="list-disc space-y-1 pl-5">
+      <li>Give you a copy of the personal data we hold about you.</li>
+      <li>Correct inaccurate data.</li>
+      <li>Delete your account data, subject to the retention period in section 4.</li>
+      <li>Explain how a specific decision affecting you was made.</li>
+    </ul>
+    <p>
+      To exercise any of these, email <a href="mailto:{{ SITE_SUPPORT_EMAIL }}" class="text-accent hover:underline">{{ SITE_SUPPORT_EMAIL }}</a>.
+      You can also lodge a complaint with Kenya's Office of the Data Protection Commissioner (ODPC)
+      at any time.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">7. Changes to this policy</h2>
+    <p>
+      If we materially change how we handle your data, we'll update this page and change the
+      "last updated" date above.
+    </p>
+  </div>
+</section>
+{% endblock %}

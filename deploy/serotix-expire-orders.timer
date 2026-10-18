@@ -1,0 +1,10 @@
+[Unit]
+Description=Run serotix-expire-orders every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=serotix-expire-orders.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,9 @@
+{{ site_name }}
+
+{{ heading }}
+
+{{ message }}
+
+Open SeroTix: {{ action_url }}
+
+Questions? {{ support_email }}

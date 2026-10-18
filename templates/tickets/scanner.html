@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Scan tickets{% endblock %}
+{% block body_class %}tickets-page app-utility{% endblock %}
+{% block content %}<div class="shell market-callout"><strong>Your gate access</strong><span>{% for event in assigned_events %}{{ event.title }}{% if not forloop.last %} · {% endif %}{% empty %}No events assigned. Ask the Super Admin to assign your event before scanning.{% endfor %}</span></div>
+<section class="mx-auto max-w-lg px-4 py-10 sm:px-6 lg:px-8">
+  <h1 class="font-display text-2xl font-bold">Scan tickets</h1>
+  <p class="mt-1 text-sm text-zinc-400">Point the camera at a ticket's QR code. Check-in happens automatically.</p>
+
+  <div
+    x-data="ticketScanner('{{ csrf_token }}')"
+    x-init="start()"
+    class="mt-6">
+
+    <div class="relative aspect-square w-full overflow-hidden rounded-3xl bg-ink-2 shadow-lg">
+      <video x-ref="video" class="h-full w-full object-cover" playsinline autoplay muted></video>
+      <canvas x-ref="canvas" class="hidden"></canvas>
+
+      <div class="pointer-events-none absolute inset-0 border-[3px] border-white/20" style="margin: 15%;"></div>
+
+      <div x-show="!cameraReady" x-cloak class="absolute inset-0 grid place-items-center bg-ink-2 p-6 text-center">
+        <p class="text-sm text-zinc-400" x-text="cameraError || 'Starting camera…'"></p>
+      </div>
+
+      <div x-show="result" x-cloak
+           :class="{
+             'bg-emerald-500/90': result === 'checked_in',
+             'bg-amber-500/90': result === 'already_used',
+             'bg-red-500/90': result === 'not_found' || result === 'error'
+           }"
+           class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-ink">
+        <p class="font-display text-2xl font-bold" x-text="resultHeadline"></p>
+        <p class="mt-2 text-sm" x-text="resultDetail"></p>
+      </div>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between text-sm">
+      <span class="text-zinc-400">Checked in this session</span>
+      <span class="font-display text-xl font-bold text-accent tabular-nums" x-text="checkedInCount"></span>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/jsQR.js' %}"></script>
+<script src="{% static 'js/ticket-scanner.js' %}"></script>
+{% endblock %}

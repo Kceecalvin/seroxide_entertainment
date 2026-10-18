@@ -1,0 +1,8 @@
+[Unit]
+Description=Retry SeroTix email every five minutes
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Unit=serotix-retry-emails.service
+[Install]
+WantedBy=timers.target

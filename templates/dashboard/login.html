@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block body_class %}workspace-page app-utility{% endblock %}
+{% block content %}
+<section class="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 sm:px-6 lg:px-8">
+  <p class="cat-text text-xs font-bold uppercase tracking-widest" data-cat="other">Organizer dashboard</p>
+  <h1 class="font-display mt-1 text-3xl font-bold">Sign in</h1>
+  <p class="mt-2 text-sm text-zinc-400">Staff access only — manage events, ticket types, and pricing.</p>
+
+  <form method="post" class="mt-8 space-y-5 border border-white/10 bg-ink-2 p-6">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <p class="border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+      {{ form.non_field_errors }}
+    </p>
+    {% endif %}
+
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.username.id_for_label }}">Username</label>
+      <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}" autofocus required
+             class="mt-1 w-full border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-brand-400 focus:outline-none">
+    </div>
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.password.id_for_label }}">Password</label>
+      <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" required
+             class="mt-1 w-full border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-brand-400 focus:outline-none">
+    </div>
+
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <button type="submit" class="btn-press w-full rounded-full bg-accent py-3 text-sm font-bold uppercase tracking-wide text-ink shadow-glow transition">
+      Sign in
+    </button>
+  </form>
+</section>
+{% endblock %}

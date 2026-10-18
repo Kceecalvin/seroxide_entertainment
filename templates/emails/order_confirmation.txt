@@ -1,0 +1,26 @@
+SeroTix — Good nights start here.
+
+You're in, {{ order.buyer_name|default:'there' }}.
+Your {{ ticket_count }} ticket{{ ticket_count|pluralize }} to {{ event.title }} {% if ticket_count == 1 %}is{% else %}are{% endif %} confirmed.
+
+THE PLAN
+{{ event.title }}
+{{ event.start_at|date:'l, d F Y · g:i A' }} EAT
+{{ event.venue }}, {{ event.city }}
+
+YOUR ORDER: {{ order.reference }}
+{% for item in items %}{{ item.ticket_type.name }} x {{ item.quantity }} — KES {{ item.subtotal|floatformat:2 }}
+{% endfor %}
+Ticket subtotal: KES {{ order.subtotal_amount|floatformat:2 }}
+Service fee: KES {{ order.service_fee|floatformat:2 }}
+Total paid: KES {{ order.total_amount|floatformat:2 }}
+
+OPEN YOUR QR TICKETS
+{{ ticket_url }}
+
+Each QR code admits one person, once. Keep your tickets private.
+Retrieve tickets with your order reference and checkout phone number:
+{{ scheme }}://{{ site_domain }}{% url 'tickets:my_tickets' %}
+
+Need a hand? {{ support_email }}
+See you out there.

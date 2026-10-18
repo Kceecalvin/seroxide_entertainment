@@ -1,0 +1,12 @@
+{% load humanize %}
+<div class="booking-panel checkout-fallback"><p class="eyebrow gold">YOUR WAY IN</p><h2>Make it a plan.</h2><p class="booking-intro">Pick your tickets. We'll take care of the rest.</p><form method="post" action="{% url 'tickets:checkout' event.slug %}">
+{% csrf_token %}
+{% for tier in ticket_types %}<div class="ticket-tier"><label for="qty-{{ tier.id }}"><strong>{{ tier.name }}</strong><span>{{ tier.description }}</span><b>KES {{ tier.price|floatformat:'-2'|intcomma }} <small>+ service fee</small></b></label>{% if tier.sales_end and tier.sales_end <= now %}<span>Sales ended</span>{% elif tier.remaining > 0 %}<input id="qty-{{ tier.id }}" type="number" name="qty_{{ tier.id }}" value="0" min="0" max="{% if tier.remaining < tier.max_per_order %}{{ tier.remaining }}{% else %}{{ tier.max_per_order }}{% endif %}" aria-label="{{ tier.name }} ticket quantity">{% else %}<span>Sold out</span>{% endif %}</div>{% endfor %}
+<p class="fee-note">A {{ service_fee_display|floatformat:'-2' }}% service fee is added to your ticket subtotal. JavaScript enables a live total before payment.</p>
+<label class="form-label" for="fallback-name">Full name<input id="fallback-name" name="buyer_name" autocomplete="name" required maxlength="150" value="{{ checkout_data.buyerName }}"></label>
+<label class="form-label" for="fallback-email">Email{% if not MPESA_ENABLED %} (required for card payment){% else %} (optional){% endif %}<input id="fallback-email" type="email" name="buyer_email" {% if not MPESA_ENABLED %}required{% endif %} autocomplete="email" value="{{ checkout_data.buyerEmail }}"></label>
+<label class="form-label" for="fallback-phone">{% if MPESA_ENABLED %}M-Pesa phone number{% else %}Phone number{% endif %}<input id="fallback-phone" type="tel" name="buyer_phone" autocomplete="tel" required placeholder="07XX XXX XXX"></label>
+<input type="hidden" name="payment_method" value="{% if MPESA_ENABLED %}mpesa{% else %}paystack{% endif %}">
+{% if not request.user.is_authenticated %}<label class="terms-label checkout-terms" for="fallback-terms"><input id="fallback-terms" type="checkbox" name="terms_accepted" required> <span>I accept the <a href="{% url 'terms' %}">Terms</a> and <a href="{% url 'privacy' %}">Privacy Policy</a>.</span></label>{% endif %}
+<button class="button button-gold" type="submit">{% if MPESA_ENABLED %}Pay with M-Pesa{% else %}Continue to card payment{% endif %} →</button>
+</form></div>

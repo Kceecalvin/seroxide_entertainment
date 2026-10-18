@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Contact{% endblock %}
+{% block body_class %}core-page app-utility{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+  <p class="text-xs font-bold uppercase tracking-widest text-accent">Get in touch</p>
+  <h1 class="font-poster mt-1 text-4xl">Contact us</h1>
+  <p class="mt-2 text-sm text-zinc-400">
+    Questions about an order, an event, or partnering with {{ SITE_NAME }} — reach us directly or send a message below.
+  </p>
+
+  <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
+    <div class="lg:col-span-3">
+      <form method="post" class="space-y-4 rounded-2xl bg-ink-3 p-6 shadow-lg">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <p class="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ form.non_field_errors }}</p>
+        {% endif %}
+        <div>
+          <label class="text-xs font-medium text-zinc-400" for="{{ form.name.id_for_label }}">Name</label>
+          <input type="text" name="{{ form.name.html_name }}" id="{{ form.name.id_for_label }}" required
+                 class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+                 placeholder="Jane Wanjiku" value="{{ form.name.value|default:'' }}">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-zinc-400" for="{{ form.email.id_for_label }}">Email</label>
+          <input type="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}" required
+                 class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+                 placeholder="jane@example.com" value="{{ form.email.value|default:'' }}">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-zinc-400" for="{{ form.subject.id_for_label }}">Subject <span class="text-zinc-600">(optional)</span></label>
+          <input type="text" name="{{ form.subject.html_name }}" id="{{ form.subject.id_for_label }}"
+                 class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+                 placeholder="Order SRX-XXXXXXXX" value="{{ form.subject.value|default:'' }}">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-zinc-400" for="{{ form.message.id_for_label }}">Message</label>
+          <textarea name="{{ form.message.html_name }}" id="{{ form.message.id_for_label }}" required rows="5"
+                    class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400">{{ form.message.value|default:'' }}</textarea>
+        </div>
+        <button type="submit" class="btn-press btn-primary w-full rounded-full py-3 text-sm font-bold uppercase tracking-wide text-white transition">
+          Send message
+        </button>
+      </form>
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="rounded-2xl bg-ink-3 p-6 shadow-lg">
+        <h2 class="font-display text-sm font-bold uppercase tracking-wide text-zinc-200">Direct</h2>
+        <ul class="mt-4 space-y-3 text-sm text-zinc-300">
+          <li><a href="mailto:{{ SITE_SUPPORT_EMAIL }}" class="hover:text-accent">{{ SITE_SUPPORT_EMAIL }}</a></li>
+          <li>{{ SITE_SUPPORT_PHONE }}</li>
+        </ul>
+
+        {% if SOCIAL_INSTAGRAM or SOCIAL_TIKTOK or SOCIAL_TWITTER or SOCIAL_FACEBOOK or SOCIAL_WHATSAPP %}
+        <h2 class="mt-6 font-display text-sm font-bold uppercase tracking-wide text-zinc-200">Follow</h2>
+        <ul class="mt-4 space-y-3 text-sm text-zinc-300">
+          {% if SOCIAL_INSTAGRAM %}<li><a href="{{ SOCIAL_INSTAGRAM }}" target="_blank" rel="noopener" class="hover:text-accent">Instagram</a></li>{% endif %}
+          {% if SOCIAL_TIKTOK %}<li><a href="{{ SOCIAL_TIKTOK }}" target="_blank" rel="noopener" class="hover:text-accent">TikTok</a></li>{% endif %}
+          {% if SOCIAL_TWITTER %}<li><a href="{{ SOCIAL_TWITTER }}" target="_blank" rel="noopener" class="hover:text-accent">X (Twitter)</a></li>{% endif %}
+          {% if SOCIAL_FACEBOOK %}<li><a href="{{ SOCIAL_FACEBOOK }}" target="_blank" rel="noopener" class="hover:text-accent">Facebook</a></li>{% endif %}
+          {% if SOCIAL_WHATSAPP %}<li><a href="{{ SOCIAL_WHATSAPP }}" target="_blank" rel="noopener" class="hover:text-accent">WhatsApp</a></li>{% endif %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

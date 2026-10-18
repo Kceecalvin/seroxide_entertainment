@@ -1,0 +1,10 @@
+[Unit]
+Description=Run serotix-backup-db nightly
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+Unit=serotix-backup-db.service
+
+[Install]
+WantedBy=timers.target

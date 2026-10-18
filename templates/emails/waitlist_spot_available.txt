@@ -1,0 +1,17 @@
+SeroTix — Your night. Another chance.
+
+Hey {{ entry.name|default:'there' }},
+A {{ ticket_type.name }} spot just opened up for {{ event.title }}.
+
+{{ event.start_at|date:'D, d M Y · g:i A' }} EAT
+{{ event.venue }}, {{ event.city }}
+{{ ticket_type.name }} — KES {{ ticket_type.price|floatformat:2 }} plus service fee.
+
+CHECK TICKETS
+{{ scheme }}://{{ site_domain }}{{ event.get_absolute_url }}#booking
+
+This is an availability alert, not a reservation. Tickets are first come,
+first served. Your booking is confirmed only after payment.
+
+You requested an availability alert for this event.
+Need a hand? {{ support_email }}

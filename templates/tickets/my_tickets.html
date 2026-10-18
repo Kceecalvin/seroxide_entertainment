@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Find my tickets{% endblock %}
+{% block body_class %}tickets-page app-utility{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-lg px-4 py-16 sm:px-6 lg:px-8">
+  <h1 class="font-display text-3xl font-bold">Find my tickets</h1>
+  <p class="mt-2 text-zinc-400">Enter your order reference and the phone number you used at checkout.</p>
+
+  <form method="get" class="mt-8 space-y-4 rounded-2xl bg-ink-3 p-6 shadow-lg">
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.reference.id_for_label }}">{{ form.reference.label }}</label>
+      {{ form.reference }}{{ form.reference.errors }}
+    </div>
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.buyer_phone.id_for_label }}">{{ form.buyer_phone.label }}</label>
+      {{ form.buyer_phone }}{{ form.buyer_phone.errors }}
+    </div>
+    <button type="submit" class="w-full rounded-full btn-primary py-3 text-sm font-semibold text-white transition hover:brightness-110">
+      Find order
+    </button>
+  </form>
+
+  {% if error %}
+  <p class="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ error }}</p>
+  {% endif %}
+
+  {% if order %}
+  <div class="mt-6 rounded-2xl bg-ink-3 p-6 shadow-lg">
+    <p class="text-sm text-zinc-400">Order <span class="font-mono text-brand-300">{{ order.reference }}</span></p>
+    <h2 class="mt-1 font-display text-lg font-semibold text-white">{{ order.event.title }}</h2>
+    <p class="mt-1 text-sm text-zinc-400">Status:
+      <span class="font-semibold {% if order.status == 'paid' %}text-emerald-400{% elif order.status == 'pending' %}text-amber-400{% else %}text-red-400{% endif %}">
+        {{ order.get_status_display }}
+      </span>
+    </p>
+    <a href="{% if order.status == 'paid' %}{% url 'tickets:order_success' order.reference %}{% else %}{% url 'tickets:order_pending' order.reference %}{% endif %}"
+       class="mt-4 inline-block rounded-full btn-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
+      View order →
+    </a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  input[type=text], input[type=tel] { width: 100%; margin-top: 0.25rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); padding: 0.625rem 0.75rem; font-size: 0.875rem; color: white; }
+  input[type=text]:focus, input[type=tel]:focus { outline: none; border-color: #3979ff; }
+</style>
+{% endblock %}

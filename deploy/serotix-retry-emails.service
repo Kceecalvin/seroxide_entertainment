@@ -1,0 +1,15 @@
+[Unit]
+Description=Retry queued SeroTix transactional email
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=serotix
+Group=serotix
+WorkingDirectory=/srv/serotix/app
+EnvironmentFile=/srv/serotix/app/.env
+Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
+ExecStart=/srv/serotix/venv/bin/python /srv/serotix/app/manage.py retry_emails
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict

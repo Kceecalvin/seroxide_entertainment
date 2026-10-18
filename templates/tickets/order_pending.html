@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Confirming payment — {{ order.reference }}{% endblock %}
+{% block body_class %}tickets-page app-utility{% endblock %}
+{% block content %}
+<section class="mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center px-4 text-center">
+  <div x-data="paymentPoll('{{ order.reference }}', '{% url 'events:detail' order.event.slug %}')" x-init="poll()">
+    <div class="relative mx-auto h-20 w-20">
+      <div class="absolute inset-0 animate-ping rounded-full bg-brand-500/30" x-show="!timedOut && !failed"></div>
+      <div class="relative grid h-20 w-20 place-items-center rounded-full btn-primary">
+        <svg class="h-9 w-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5-1.343 1.5-3 1.5m0-6V6m0 9v1m9-4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+    </div>
+
+    {% if payment.method == 'stripe' or payment.method == 'paystack' %}
+    <h1 class="mt-6 font-display text-2xl font-bold">Confirming your payment</h1>
+    <p class="mt-2 text-zinc-400">
+      We're confirming your card payment of <span class="font-semibold text-white">KES {{ order.total_amount|floatformat:0 }}</span> for order
+      <span class="font-mono text-brand-300">{{ order.reference }}</span>. This usually takes a few seconds.
+    </p>
+    {% else %}
+    <h1 class="mt-6 font-display text-2xl font-bold">Check your phone</h1>
+    <p class="mt-2 text-zinc-400">
+      We sent an M-Pesa prompt to <span class="text-white">{{ payment.phone_number|default:order.buyer_phone }}</span>.
+      Enter your PIN to pay <span class="font-semibold text-white">KES {{ order.total_amount|floatformat:0 }}</span> for order
+      <span class="font-mono text-brand-300">{{ order.reference }}</span>.
+    </p>
+    {% endif %}
+
+    <p x-show="failed" x-cloak class="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+      <span x-text="failMessage"></span>
+      — <a href="{% url 'events:detail' order.event.slug %}" class="underline">try again</a>.
+    </p>
+
+    <p x-show="timedOut" x-cloak class="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+      This is taking longer than expected — redirecting you back in <span x-text="redirectIn"></span>s.
+      If you already paid, your ticket will still be issued as soon as we hear back.
+      <a :href="eventUrl" class="underline">Go back now</a>.
+    </p>
+
+    <div x-show="!failed && !timedOut" class="mt-8 text-xs uppercase tracking-widest text-zinc-500">
+      Waiting for confirmation&hellip; <span x-text="countdown"></span>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/payment-poll.js' %}"></script>
+{% endblock %}

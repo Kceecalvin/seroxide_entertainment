@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service{% endblock %}
+{% block body_class %}legal-page app-utility{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+  <p class="text-xs font-bold uppercase tracking-widest text-accent">Legal</p>
+  <h1 class="font-poster mt-1 text-4xl">Terms of Service</h1>
+  <p class="mt-2 text-sm text-zinc-500">Last updated 18 October 2026</p>
+
+  <div class="prose prose-invert mt-8 max-w-none space-y-6 text-sm leading-relaxed text-zinc-300">
+    <p>
+      These terms apply whenever you buy a ticket through {{ SITE_NAME }}, whether as a guest or
+      with an account. By completing a purchase, you accept them.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">1. What {{ SITE_NAME }} is</h2>
+    <p>
+      {{ SITE_NAME }} is a ticketing platform. Events listed are organized and run by independent
+      event organizers, not by {{ SITE_NAME }}. We handle payment, ticket issuance, and door
+      check-in on their behalf; the organizer is responsible for the event itself.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">2. Your ticket</h2>
+    <ul class="list-disc space-y-1 pl-5">
+      <li>Each ticket is a single QR code, valid for one entry only. Whoever presents it first at the door gets in — so treat it like cash and don't post it publicly.</li>
+      <li>Your ticket, order reference, and QR code are emailed to you (if you gave an email) and always available via My Account or the guest lookup page.</li>
+      <li>Entry requirements (age limits, ID checks, dress code, bag policy) are set by the organizer and may be enforced at the door independently of your ticket being valid.</li>
+    </ul>
+
+    <h2 class="font-display text-lg font-bold text-white">3. Payments</h2>
+    <p>
+      We currently support M-Pesa (via Safaricom's Daraja API) and card payments (via Paystack).
+      Your ticket is only issued once payment is confirmed by the payment provider — an STK
+      prompt you cancel, or a card payment that fails, doesn't reserve you a ticket. Prices are
+      shown in Kenyan Shillings (KES) and include no hidden fees beyond what's displayed at
+      checkout.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">4. Refunds and cancellations</h2>
+    <ul class="list-disc space-y-1 pl-5">
+      <li><strong class="text-white">If an event is cancelled outright by the organizer,</strong> you're entitled to a full refund of the ticket price.</li>
+      <li><strong class="text-white">If an event is postponed to a new date,</strong> your ticket carries over to the new date; if you can't make the new date, contact us for a refund.</li>
+      <li><strong class="text-white">If you simply can't attend,</strong> tickets are non-refundable — this keeps ticket prices fair for everyone, since inventory was held for you. Check event details carefully before buying.</li>
+      <li>Refunds, where owed, are issued back to the original payment method (M-Pesa or card) and can take a few business days depending on the provider.</li>
+    </ul>
+
+    <h2 class="font-display text-lg font-bold text-white">5. Accounts</h2>
+    <p>
+      Creating an account is optional — guest checkout is always available via order reference
+      and phone lookup. If you do create an account, you're responsible for keeping your password
+      secure; contact us immediately if you suspect unauthorized access.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">6. Our liability</h2>
+    <p>
+      We're the ticketing platform, not the event organizer — we're not responsible for the
+      conduct, quality, or safety of an event itself, or for losses caused by outages or delays
+      at Safaricom or Paystack that are outside our control. Nothing here limits any liability that
+      can't lawfully be limited under Kenyan law.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">7. Changes</h2>
+    <p>
+      We may update these terms as the platform evolves. Continuing to use {{ SITE_NAME }} after
+      a change means you accept the update; material changes will be reflected in the date above.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">8. Governing law</h2>
+    <p>
+      These terms are governed by the laws of Kenya. See also our
+      <a href="{% url 'privacy' %}" class="text-accent hover:underline">Privacy Policy</a>
+      for how we handle your data.
+    </p>
+
+    <h2 class="font-display text-lg font-bold text-white">9. Contact</h2>
+    <p>
+      Questions about an order or these terms: <a href="mailto:{{ SITE_SUPPORT_EMAIL }}" class="text-accent hover:underline">{{ SITE_SUPPORT_EMAIL }}</a> or {{ SITE_SUPPORT_PHONE }}.
+    </p>
+  </div>
+</section>
+{% endblock %}

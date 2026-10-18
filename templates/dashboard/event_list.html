@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Dashboard{% endblock %}
+{% block body_class %}workspace-page app-utility{% endblock %}
+{% block content %}{% include 'dashboard/operations_nav.html' %}
+<section class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="cat-text text-xs font-bold uppercase tracking-widest" data-cat="other">Organizer dashboard</p>
+      <h1 class="font-display mt-1 text-3xl font-bold">Your events. Your momentum.</h1>
+    </div>
+    <div class="flex gap-3">
+      <a href="{% url 'tickets:scanner' %}" class="btn-press border border-white/15 px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-zinc-200 transition hover:border-accent hover:text-accent">
+        Scan tickets
+      </a>
+      <a href="{% url 'dashboard:event_create' %}" class="btn-press rounded-full bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-ink shadow-glow transition">
+        + New event
+      </a>
+    </div>
+  </div>
+
+  <div class="revenue-grid">
+    <article><span>CONFIRMED TICKET SALES</span><strong>KES {{ metrics.ticket_sales|floatformat:2|intcomma }}</strong><p>Paid ticket value, excluding service fees</p></article>
+    <article><span>PLATFORM FEES COLLECTED</span><strong>KES {{ metrics.platform_fees|floatformat:2|intcomma }}</strong><p>Before payment processing costs and tax</p></article>
+    <article><span>PAID ORDERS</span><strong>{{ metrics.paid_orders|intcomma }}</strong><p>{{ metrics.pending_orders }} order{{ metrics.pending_orders|pluralize }} awaiting payment</p></article>
+    <article><span>AVERAGE PAID ORDER</span><strong>KES {{ metrics.average_order|floatformat:2|intcomma }}</strong><p>Tickets and disclosed service fees</p></article>
+  </div>
+  <p class="metrics-note">All-time paid orders. Pending reservations and cancelled or refunded orders are excluded from sales.</p>
+  <div class="growth-panel"><div><p class="eyebrow">MAKE YOUR NEXT RELEASE WORK HARDER</p><h2>A great night deserves a full house.</h2><p>Publish clear ticket tiers, explain the VIP experience, and share a direct booking link with your audience.</p></div><a class="button button-outline" href="{% url 'contact' %}?enquiry=promote">Plan event promotion ↗</a></div>
+  <div class="mt-8 overflow-x-auto border border-white/10">
+    <table class="w-full min-w-[720px] border-collapse text-left text-sm">
+      <thead>
+        <tr class="border-b border-white/10 bg-ink-2 text-xs uppercase tracking-wide text-zinc-400">
+          <th class="px-4 py-3 font-semibold">Event</th>
+          <th class="px-4 py-3 font-semibold">Date</th>
+          <th class="px-4 py-3 font-semibold">Status</th>
+          <th class="px-4 py-3 font-semibold">Paid / capacity</th>
+          <th class="px-4 py-3 font-semibold">Ticket sales</th>
+          <th class="px-4 py-3 font-semibold"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr class="border-b border-white/5 hover:bg-white/5">
+          <td class="px-4 py-3">
+            <span class="cat-chip" data-cat="{{ row.event.category }}">{{ row.event.get_category_display }}</span>
+            <p class="mt-1 font-medium text-white">{{ row.event.title }}</p>
+            <p class="text-xs text-zinc-500">{{ row.event.venue }}, {{ row.event.city }}</p>
+          </td>
+          <td class="px-4 py-3 text-zinc-300">{{ row.event.start_at|date:"d M Y, g:i A" }}</td>
+          <td class="px-4 py-3">
+            {% if row.event.is_published %}<span class="text-emerald-400">Published</span>{% else %}<span class="text-zinc-500">Draft</span>{% endif %}
+            {% if row.event.is_featured %}<span class="ml-2 text-accent">&bull; Featured</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 tabular-nums text-zinc-300">{{ row.sold }} / {{ row.capacity }}</td>
+          <td class="px-4 py-3 tabular-nums text-zinc-300">KES {{ row.revenue|floatformat:2|intcomma }}</td>
+          <td class="px-4 py-3 text-right">
+            <a href="{% url 'dashboard:event_edit' row.event.slug %}" class="text-accent hover:underline">Manage &rarr;</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="px-4 py-10 text-center text-zinc-500">No events yet — create your first one.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

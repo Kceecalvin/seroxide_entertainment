@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /secure-admin-panel/
+Disallow: /manage/
+Disallow: /payments/
+Disallow: /tickets/order/
+
+Sitemap: https://{{ SITE_DOMAIN }}/sitemap.xml

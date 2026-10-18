@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Log in{% endblock %}
+{% block body_class %}accounts-page app-utility auth-page{% endblock %}
+{% block content %}
+<section class="auth-shell shell">
+{% include 'includes/auth-story.html' %}
+<div class="auth-panel"><a class="auth-back" href="{% url 'events:list' %}">← Back to the good stuff</a><p class="eyebrow gold">THE GOOD TIMES CONTINUE</p><h1>Good to have you back.</h1><p class="auth-intro">Your tickets, your plans, your next great night. Right here.</p>
+  <form method="post" class="auth-form space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <p class="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ form.non_field_errors }}</p>
+    {% endif %}
+
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.username.id_for_label }}">Email or username</label>
+      <input type="text" autocomplete="username" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}" autofocus required
+             class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+             placeholder="jane@example.com">
+    </div>
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.password.id_for_label }}">Password</label>
+      <input type="password" autocomplete="current-password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" required
+             class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400">
+    </div>
+
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <button type="submit" class="btn-press btn-primary w-full rounded-full py-3 text-sm font-bold uppercase tracking-wide text-white transition">
+      Log in
+    </button>
+  <p><a href="{% url 'accounts:password_reset' %}">Forgot your password?</a></p></form>
+<p class="auth-switch">New around here? <a href="{% url 'accounts:signup' %}">Make yourself at home ↗</a></p><p class="auth-guest-note"><svg class="icon"><use href="#i-shield"/></svg> Just here for tickets? Guest checkout is always available.</p></div>
+</section>
+{% endblock %}

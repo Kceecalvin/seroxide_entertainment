@@ -1,25 +1,32 @@
 # Django Core
-Django==5.0.0
-gunicorn==21.2.0  # For production deployment
+Django==5.2.18
+gunicorn==22.0.0  # For production deployment
+whitenoise==6.7.0  # Serve static files in production without a separate web server
 
 # Database/Environment
 python-dotenv==1.0.1  # For secure environment variable handling
+psycopg[binary]==3.2.13  # PostgreSQL driver — required in production, see config/settings/prod.py
 
 # QR Code Generation
-Pillow==10.1.0
+Pillow==12.3.0
 qrcode==7.4.2
 # The 'qrcode' package generates the QR code image
 
-# M-Pesa Integration
-# We'll use a reliable, community-maintained library for M-Pesa Daraja API integration.
-django-mpesa==2.0.14
-
-# BTC Integration (Placeholder for now, implementation often uses external payment services like Coinbase/Binance APIs)
-# We will decide on the best integration method (e.g., a simple API client) when we reach this feature.
+# M-Pesa Integration (Safaricom Daraja API)
+# We call the Daraja REST API directly (OAuth + STK Push) via 'requests' rather than
+# a third-party wrapper, so behavior is fully auditable. See apps/payments/mpesa.py.
+requests==2.32.3
 
 # Styling & Frontend
-# We will use an external method (CDN or build process) for high-end CSS (like Tailwind/Bootstrap),
-# but keep it out of the core Python requirements for now.
+# Self-hosted CSS/JS. React, Framer Motion and Three.js sources live in frontend/;
+# npm ci && npm run build creates the committed static/dist bundles.
 
 # Security
-django-cors-headers==4.3.1
+django-cors-headers==4.4.0
+
+# Shared cache for rate limiting (apps/core/ratelimit.py) — LocMemCache (Django's
+# default) is per-process, so with gunicorn running multiple workers each worker
+# enforces its own separate limit, silently multiplying the effective threshold by
+# the worker count. django-redis talks to the Valkey (Redis-compatible) instance
+# on the VPS, shared across all workers.
+django-redis==5.4.0

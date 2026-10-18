@@ -1,0 +1,80 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080b12">
+<title>{% block title %}{{ SITE_NAME }}{% endblock %} — {{ SITE_TAGLINE }}</title>
+<meta name="description" content="{% block description %}Find your next great night out. Discover concerts, festivals and live experiences across Kenya. Book with M-Pesa and get your QR ticket on your phone.{% endblock %}">
+<link rel="icon" type="image/png" href="{% static 'img/brand/favicon-32.png' %}">
+<link rel="apple-touch-icon" href="{% static 'img/brand/apple-touch-icon.png' %}">
+<link rel="canonical" href="{% block canonical_url %}https://{{ SITE_DOMAIN }}{{ request.path }}{% endblock %}">
+<meta property="og:site_name" content="{{ SITE_NAME }}">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:title" content="{% block og_title %}{{ SITE_NAME }} — {{ SITE_TAGLINE }}{% endblock %}">
+<meta property="og:description" content="{% block og_description %}{{ SITE_TAGLINE }}{% endblock %}">
+<meta property="og:url" content="https://{{ SITE_DOMAIN }}{{ request.path }}">
+{% block og_image %}<meta property="og:image" content="https://{{ SITE_DOMAIN }}{% static 'img/hero/slide-1.jpg' %}">{% endblock %}
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+<link rel="stylesheet" href="{% static 'css/experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/premium.css' %}">
+{% block extra_head %}{% endblock %}
+<link rel="stylesheet" href="{% static 'css/marketplace.css' %}">
+</head>
+<body id="page-top" class="bg-ink text-zinc-100 font-sans antialiased {% block body_class %}{% endblock %}">
+<a class="skip-link" href="#main-content">Skip to content</a>
+{% include 'includes/icons.html' %}
+{% if LOCAL_DEMO %}<aside class="demo-banner"><div class="shell"><span>LOCAL DEMO · No real charges or emails</span><a href="{% url 'demo_hub' %}">Switch demo account ↗</a></div></aside>{% endif %}
+<header class="site-header" data-site-header>
+  <div class="shell header-row">
+    <a href="{% url 'events:list' %}" class="wordmark" aria-label="SeroTix home"><img src="{% static 'img/brand/logo-real-icon.png' %}" width="34" height="34" alt=""><span>sero<span class="gold">tix</span><span class="wordmark-dot">®</span></span></a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="{% url 'events:list' %}#events" {% if request.resolver_match.app_name == 'events' %}aria-current="page"{% endif %}>Discover events</a>
+      <a href="{% url 'events:list' %}?when=weekend#events">This weekend <span class="nav-dot"></span></a>
+      <a href="{% url 'tickets:my_tickets' %}">My tickets</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="squad-trigger" data-squad-open aria-label="Open squad shortlist"><svg class="icon"><use href="#i-bookmark"/></svg><span class="squad-label">Squad</span><span class="squad-count" data-squad-count>0</span></button>
+      {% if platform_admin %}<a class="header-login" href="{% url 'dashboard:home' %}">Dashboard</a>
+      {% elif account_role == 'scanner' %}<a class="header-login" href="{% url 'tickets:scanner' %}">Scan tickets</a>
+      {% elif account_role == 'seller' %}<a class="header-login" href="{% url 'accounts:seller_home' %}">Seller studio</a>
+      {% elif request.user.is_authenticated %}<a class="header-login" href="{% url 'accounts:my_account' %}">My account</a>
+      {% else %}<a class="header-login" href="{% url 'accounts:login' %}">Log in <svg class="icon"><use href="#i-arrow-up"/></svg></a>{% endif %}
+      <a href="{% url 'accounts:seller_onboard' %}" class="button button-small button-outline organizer-nav">Host an event <svg class="icon"><use href="#i-arrow-up"/></svg></a>
+      <details class="mobile-menu">
+        <summary aria-label="Open navigation"><svg class="icon"><use href="#i-menu"/></svg></summary>
+        <nav aria-label="Mobile navigation">
+          <a href="{% url 'events:list' %}#events">Discover events</a><a href="{% url 'events:list' %}?when=weekend#events">This weekend</a><a href="{% url 'tickets:my_tickets' %}">My tickets</a>
+          {% if request.user.is_authenticated %}<a href="{% url 'accounts:my_account' %}">My account</a>{% else %}<a href="{% url 'accounts:login' %}">Log in</a><a href="{% url 'accounts:signup' %}">Create account</a>{% endif %}
+          {% if platform_admin %}<a href="{% url 'dashboard:home' %}">Dashboard</a>{% elif account_role == 'scanner' %}<a href="{% url 'tickets:scanner' %}">Scan tickets</a>{% endif %}
+          <a href="{% url 'accounts:seller_onboard' %}">Host an event</a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+{% if messages %}<div class="site-messages shell" aria-live="polite">{% for message in messages %}<div class="site-message {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+<main id="main-content">{% block content %}{% endblock %}</main>
+<div id="discovery-tools" data-catalog-url="{% url 'events:catalog' %}"></div>
+<footer class="site-footer" data-footer>
+  <div class="footer-prelude shell"><div><p class="eyebrow">THE NIGHT DOESN'T END HERE</p><a class="footer-next" href="{% url 'events:list' %}#events">See you <em>out there.</em><span class="footer-next-arrow"><svg class="icon"><use href="#i-arrow-up"/></svg></span></a></div><a class="back-top" href="#page-top" aria-label="Back to top"><span>BACK TO TOP</span><svg class="icon"><use href="#i-arrow-up"/></svg></a></div>
+  <div class="brand-ribbon" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="shell footer-top">
+    <div class="footer-brand"><a href="{% url 'events:list' %}" class="wordmark"><img src="{% static 'img/brand/logo-real-icon.png' %}" width="34" height="34" alt=""><span>sero<span class="gold">tix</span><span class="wordmark-dot">®</span></span></a><p>Good nights start here.<br>Made for the way Kenya moves.</p><span class="footer-location"><span class="nav-dot"></span> Nairobi, Kenya · Everywhere the music takes you.</span></div>
+    <div><h2>Find your people</h2><a href="{% url 'events:list' %}#events">Discover events</a><a href="{% url 'events:list' %}?when=weekend#events">This weekend</a><a href="{% url 'tickets:my_tickets' %}">Find my tickets</a></div>
+    <div><h2>Make it happen</h2><a href="{% url 'accounts:seller_onboard' %}">Host an event</a><a href="{% url 'accounts:seller_home' %}">Seller studio</a><a href="{% url 'contact' %}?enquiry=promote">Promote your event</a></div>
+    <div><h2>Stay connected</h2><a href="mailto:{{ SITE_SUPPORT_EMAIL }}">{{ SITE_SUPPORT_EMAIL }}</a>{% if SOCIAL_INSTAGRAM %}<a href="{{ SOCIAL_INSTAGRAM }}" target="_blank" rel="noopener">Instagram ↗</a>{% endif %}{% if SOCIAL_TIKTOK %}<a href="{{ SOCIAL_TIKTOK }}" target="_blank" rel="noopener">TikTok ↗</a>{% endif %}{% if SOCIAL_WHATSAPP %}<a href="{{ SOCIAL_WHATSAPP }}" target="_blank" rel="noopener">WhatsApp ↗</a>{% endif %}{% if SOCIAL_TWITTER %}<a href="{{ SOCIAL_TWITTER }}" target="_blank" rel="noopener">X ↗</a>{% endif %}{% if SOCIAL_FACEBOOK %}<a href="{{ SOCIAL_FACEBOOK }}" target="_blank" rel="noopener">Facebook ↗</a>{% endif %}</div>
+  </div>
+  <div class="footer-monogram shell" aria-hidden="true"><span>SERO</span><span>TIX</span><i>®</i></div>
+  <div class="shell footer-bottom"><span>© {% now 'Y' %} {{ SITE_NAME }}. For the moments that matter.</span><div><a href="{% url 'privacy' %}">Privacy</a><a href="{% url 'terms' %}">Terms</a><span class="payment-wordmark">M-PESA</span>{% if PAYSTACK_ENABLED %}<span>VISA</span>{% endif %}</div></div>
+</footer>
+<script defer src="{% static 'js/motion.js' %}"></script>
+<script defer src="{% static 'js/alpine.min.js' %}"></script>
+<script type="module" src="{% static 'dist/experience.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

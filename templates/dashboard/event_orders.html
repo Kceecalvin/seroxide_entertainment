@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Orders — {{ event.title }}{% endblock %}
+{% block body_class %}workspace-page app-utility{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+  <p class="cat-text text-xs font-bold uppercase tracking-widest" data-cat="{{ event.category }}">Organizer dashboard</p>
+  <h1 class="font-display mt-1 text-3xl font-bold">Orders — {{ event.title }}</h1>
+  <p class="mt-2 max-w-2xl text-sm text-zinc-400">
+    Paid, cancelled, and refunded orders for this event. Refunding an order cancels it, voids
+    its tickets (they stop scanning as valid at the door), and releases the stock back to sale.
+  </p>
+
+  {% if rows %}
+  <div class="mt-8 overflow-x-auto border border-white/10">
+    <table class="w-full min-w-[900px] border-collapse text-left text-sm">
+      <thead>
+        <tr class="border-b border-white/10 bg-ink-2 text-xs uppercase tracking-wide text-zinc-400">
+          <th class="px-4 py-3 font-semibold">Order</th>
+          <th class="px-4 py-3 font-semibold">Buyer</th>
+          <th class="px-4 py-3 font-semibold">Amount</th>
+          <th class="px-4 py-3 font-semibold">Method</th>
+          <th class="px-4 py-3 font-semibold">Receipt</th>
+          <th class="px-4 py-3 font-semibold">Status</th>
+          <th class="px-4 py-3 font-semibold"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for row in rows %}
+        {% with order=row.order payment=row.payment %}
+        <tr>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-300">{{ order.reference }}</td>
+          <td class="px-4 py-3">
+            {{ order.buyer_name }}
+            <div class="text-xs text-zinc-500">{{ order.buyer_phone }}{% if order.buyer_email %} &middot; {{ order.buyer_email }}{% endif %}</div>
+          </td>
+          <td class="px-4 py-3">
+            KES {{ order.total_amount|floatformat:0 }}
+            <div class="text-xs text-zinc-500">{{ order.subtotal_amount|floatformat:0 }} tickets + {{ order.service_fee|floatformat:0 }} fee</div>
+          </td>
+          <td class="px-4 py-3 uppercase text-xs text-zinc-400">{{ payment.get_method_display|default:"—" }}</td>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-400">
+            {{ payment.mpesa_receipt_number|default:payment.stripe_payment_intent_id|default:payment.paystack_reference|default:"—" }}
+          </td>
+          <td class="px-4 py-3">
+            {% if order.status == 'paid' %}
+              <span class="text-emerald-400">{{ order.get_status_display }}</span>
+            {% elif order.status == 'cancelled' %}
+              <span class="text-red-400">{{ order.get_status_display }}</span>
+            {% else %}
+              <span class="text-zinc-400">{{ order.get_status_display }}</span>
+            {% endif %}
+            {% if payment.status == 'refunded' %}
+              <div class="mt-1 text-xs text-zinc-500">
+                Refunded {{ payment.refunded_at|naturaltime }}
+                {% if payment.refund_reference %}&middot; ref {{ payment.refund_reference }}{% endif %}
+              </div>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">
+            {% if request.user.is_superuser and order.status == 'paid' and payment.status == 'completed' %}
+            <details class="relative">
+              <summary class="btn-press inline-block cursor-pointer rounded-full bg-red-500/90 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-red-500">
+                Refund
+              </summary>
+              <form method="post" action="{% url 'dashboard:issue_refund' payment.pk %}" class="absolute right-0 z-10 mt-2 w-72 border border-white/10 bg-ink-2 p-4 shadow-lg">
+                {% csrf_token %}
+                {% if payment.method == 'stripe' %}
+                <p class="text-xs text-zinc-400">Refunds the full amount via Stripe's API automatically.</p>
+                {% elif payment.method == 'paystack' %}
+                <p class="text-xs text-zinc-400">Refunds the full amount via Paystack's API automatically.</p>
+                {% else %}
+                <label class="block text-xs font-semibold text-zinc-300">
+                  Safaricom transaction code
+                  <input type="text" name="manual_reference" required
+                         class="mt-1 w-full rounded-xl border border-white/10 bg-ink px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+                         placeholder="e.g. QJI7XXXX21">
+                </label>
+                <p class="mt-1 text-xs text-zinc-500">
+                  M-Pesa has no automatic refund API — send the money back first via Safaricom's
+                  business portal, then enter the resulting transaction code here.
+                </p>
+                {% endif %}
+                <button type="submit" class="btn-press mt-3 w-full rounded-full bg-red-500/90 px-3 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-red-500">
+                  Confirm refund
+                </button>
+              </form>
+            </details>
+            {% endif %}
+          </td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="mt-8 border border-white/10 bg-ink-2 px-6 py-8 text-center">
+    <p class="text-zinc-400">No paid or cancelled orders yet for this event.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Create account{% endblock %}
+{% block body_class %}accounts-page app-utility auth-page{% endblock %}
+{% block content %}
+<section class="auth-shell shell">
+{% include 'includes/auth-story.html' %}
+<div class="auth-panel"><a class="auth-back" href="{% url 'events:list' %}">← Back to the good stuff</a><p class="eyebrow gold">YOUR NEXT CHAPTER STARTS HERE</p><h1>Make room for good nights.</h1><p class="auth-intro">Keep your tickets together and your next experience within reach.</p>
+  <form method="post" class="auth-form space-y-4">
+    {% csrf_token %}
+    <fieldset class="market-signup-choice"><legend>I’m here to</legend>{{ form.intent }}{{ form.intent.errors }}</fieldset>
+    {% if form.non_field_errors %}
+    <p class="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ form.non_field_errors }}</p>
+    {% endif %}
+
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.full_name.id_for_label }}">Full name</label>
+      <input type="text" autocomplete="name" name="{{ form.full_name.html_name }}" id="{{ form.full_name.id_for_label }}" autofocus required
+             class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+             placeholder="Jane Wanjiku" value="{{ form.full_name.value|default:'' }}">
+      {% for err in form.full_name.errors %}<p class="mt-1 text-xs text-red-300">{{ err }}</p>{% endfor %}
+    </div>
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.email.id_for_label }}">Email</label>
+      <input type="email" autocomplete="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}" required
+             class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+             placeholder="jane@example.com" value="{{ form.email.value|default:'' }}">
+      {% for err in form.email.errors %}<p class="mt-1 text-xs text-red-300">{{ err }}</p>{% endfor %}
+    </div>
+    <div>
+      <label class="text-xs font-medium text-zinc-400" for="{{ form.password.id_for_label }}">Password</label>
+      <input type="password" autocomplete="new-password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" required
+             class="mt-1 w-full rounded-xl bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-400">
+      {% for err in form.password.errors %}<p class="mt-1 text-xs text-red-300">{{ err }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label class="flex items-start gap-2 text-xs text-zinc-400">
+        <input type="checkbox" name="{{ form.terms_accepted.html_name }}" required
+               class="mt-0.5 h-4 w-4 shrink-0 rounded border-0 bg-white/10 text-accent focus:outline-none focus:ring-1 focus:ring-brand-400">
+        <span>I agree to the <a href="{% url 'terms' %}" target="_blank" class="text-accent hover:underline">Terms of Service</a> and <a href="{% url 'privacy' %}" target="_blank" class="text-accent hover:underline">Privacy Policy</a>.</span>
+      </label>
+      {% for err in form.terms_accepted.errors %}<p class="mt-1 text-xs text-red-300">{{ err }}</p>{% endfor %}
+    </div>
+
+    <button type="submit" class="btn-press btn-primary w-full rounded-full py-3 text-sm font-bold uppercase tracking-wide text-white transition">
+      Create account
+    </button>
+  </form>
+<p class="auth-switch">Already one of us? <a href="{% url 'accounts:login' %}">Welcome back ↗</a></p><p class="auth-guest-note"><svg class="icon"><use href="#i-shield"/></svg> Just here for tickets? Guest checkout is always available.</p></div>
+</section>
+{% endblock %}

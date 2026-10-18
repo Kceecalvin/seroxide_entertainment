@@ -1,0 +1,31 @@
+[Unit]
+Description=SeroTix Gunicorn application server
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=serotix
+Group=serotix
+WorkingDirectory=/srv/serotix/app
+EnvironmentFile=/srv/serotix/app/.env
+RuntimeDirectory=serotix
+RuntimeDirectoryMode=0755
+LogsDirectory=serotix
+LogsDirectoryMode=0755
+ExecStart=/srv/serotix/venv/bin/gunicorn config.wsgi:application \
+    --config /srv/serotix/app/deploy/gunicorn_config.py
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+
+# Basic hardening — the app doesn't need broad filesystem/network access
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/srv/serotix/app/media /run/serotix /var/log/serotix
+
+[Install]
+WantedBy=multi-user.target

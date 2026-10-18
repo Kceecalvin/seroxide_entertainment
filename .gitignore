@@ -7,14 +7,29 @@ __pycache__/
 .vscode/
 .idea/
 
-# Environment files
-.env  # DO NOT COMMIT SECRETS!
+# Environment files — DO NOT COMMIT SECRETS! (gitignore has no inline-comment
+# syntax; a trailing comment on the same line as a pattern becomes part of the
+# literal pattern and silently stops it from matching anything.)
+.env
+.env.*
+!.env.example
 
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3  # Never commit the local DB file
+db.sqlite3
+/media/
+/staticfiles/
 
 # Virtual environment
 /venv/
 /env/
+
+# Frontend tooling; compiled static/dist assets are shipped with Django.
+/node_modules/
+/frontend/build-meta.json
+/test-results/
+/playwright-report/
+/.claude/
+/.mcp.json
+/handover/
