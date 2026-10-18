@@ -15,6 +15,7 @@ def site_branding(request):
         'SITE_TAGLINE': settings.SITE_TAGLINE,
         'SITE_SUPPORT_EMAIL': settings.SITE_SUPPORT_EMAIL,
         'SITE_SUPPORT_PHONE': settings.SITE_SUPPORT_PHONE,
+        'SITE_SUPPORT_PHONE_TEL': settings.SITE_SUPPORT_PHONE_TEL,
         'SITE_DOMAIN': settings.SITE_DOMAIN,
         'PAYSTACK_ENABLED': 'paystack' in methods,
         'MPESA_ENABLED': 'mpesa' in methods,

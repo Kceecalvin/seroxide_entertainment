@@ -194,7 +194,7 @@ class MarketplaceTests(TestCase):
         from apps.payments.models import Payment, PaymentStatus
         from apps.payments.services import handle_paystack_event
         self.event.review_status='approved';self.event.is_published=True;self.event.save()
-        for amount,currency in [(107999,'KES'),(108000,'USD')]:
+        for amount,currency in [(99999,'KES'),(100000,'USD')]:
             order=create_order(event=self.event,buyer_name='T',buyer_email='',buyer_phone='254700000001',cart={self.tier.pk:1})
             payment=Payment.objects.create(order=order,amount=order.total_amount,method='paystack',paystack_reference=f'precision-{order.pk}')
             handle_paystack_event({'event':'charge.success','data':{'reference':payment.paystack_reference,'status':'success','amount':amount,'currency':currency}})
@@ -208,7 +208,7 @@ class MarketplaceTests(TestCase):
         Order.objects.filter(pk=order.pk).update(status='cancelled')
         Ticket.objects.filter(order_item__order=order).update(status='cancelled')
         payment=Payment.objects.create(order=order,amount=order.total_amount,method='paystack',paystack_reference='already-refunded',status=PaymentStatus.REFUNDED)
-        handle_paystack_event({'event':'charge.success','data':{'reference':'already-refunded','status':'success','amount':108000,'currency':'KES'}})
+        handle_paystack_event({'event':'charge.success','data':{'reference':'already-refunded','status':'success','amount':100000,'currency':'KES'}})
         payment.refresh_from_db();order.refresh_from_db()
         self.assertEqual(payment.status,PaymentStatus.REFUNDED);self.assertEqual(order.status,'cancelled')
         self.assertFalse(Ticket.objects.filter(order_item__order=order,status='valid').exists())
@@ -236,3 +236,19 @@ class MarketplaceTests(TestCase):
         self.assertFalse(created.is_published);self.assertFalse(created.is_featured)
         edit=self.client.get(reverse('accounts:seller_edit',args=[created.pk]))
         self.assertEqual(edit.context['form'].initial['organizer_name'],'My event brand')
+
+    def test_seller_reports_commission_without_deducting_processing(self):
+        from decimal import Decimal
+        self.paid_order()
+        Order.objects.create(event=self.event, status='cancelled', total_amount=10000,
+                                           platform_commission=500, buyer_name='Refunded', buyer_phone='254700000001')
+        self.login(self.seller)
+        response = self.client.get(reverse('accounts:seller_home'))
+        self.assertEqual(response.context['sales']['tickets'], Decimal('1000'))
+        self.assertEqual(response.context['sales']['commission'], Decimal('50'))
+        self.assertEqual(response.context['sales']['organizer_share'], Decimal('950'))
+        self.assertContains(response, 'not transferred payouts')
+        self.login(self.owner)
+        response = self.client.get(reverse('dashboard:home'))
+        self.assertEqual(response.context['metrics']['platform_fees'], Decimal('50'))
+        self.assertEqual(response.context['metrics']['organizer_share'], Decimal('950'))

@@ -3,6 +3,7 @@ stock can't be oversold, a duplicated payment callback can't double-mint
 tickets, and door check-in can't double-admit the same QR code.
 """
 from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -225,65 +226,89 @@ class CheckoutFlowTests(TestCase):
         self.assertEqual(resp.status_code, 429)
 
 
-class ServiceFeeTests(TestCase):
-    """Order.recalculate_total() must add the disclosed service fee on top
-    of the ticket subtotal, and that fee-inclusive total is what actually
-    gets charged (apps/payments/services.py reads order.total_amount
-    directly for both M-Pesa and Stripe)."""
-
+class CommissionTests(TestCase):
     def setUp(self):
         self.event = make_event()
 
-    @override_settings(SERVICE_FEE_PERCENT=0.08)
-    def test_total_includes_service_fee(self):
-        ticket_type = TicketType.objects.create(event=self.event, name='Regular', price=500, quantity_total=10)
-        order = create_order(
-            event=self.event, buyer_name='A', buyer_email='', buyer_phone='254700000001',
-            cart={str(ticket_type.pk): 1},
-        )
-        self.assertEqual(order.subtotal_amount, 500)
-        self.assertEqual(order.service_fee, 40)  # 8% of 500
-        self.assertEqual(order.total_amount, 540)
+    def order(self, price='1000.00', quantity=1):
+        tier = TicketType.objects.create(event=self.event, name='General', price=price, quantity_total=100)
+        return create_order(event=self.event, buyer_name='Buyer', buyer_email='buyer@example.test',
+                            buyer_phone='254700000001', cart={tier.pk: quantity})
 
-    @override_settings(SERVICE_FEE_PERCENT=0.08)
-    def test_fee_scales_with_multiple_items(self):
-        early_bird = TicketType.objects.create(event=self.event, name='Early Bird', price=400, quantity_total=10)
-        vip = TicketType.objects.create(event=self.event, name='VIP', price=1000, quantity_total=10)
-        order = create_order(
-            event=self.event, buyer_name='A', buyer_email='', buyer_phone='254700000001',
-            cart={str(early_bird.pk): 2, str(vip.pk): 1},
-        )
-        # subtotal = 2*400 + 1*1000 = 1800
-        self.assertEqual(order.subtotal_amount, 1800)
-        self.assertEqual(order.service_fee, 144)  # 8% of 1800
-        self.assertEqual(order.total_amount, 1944)
+    def test_five_percent_is_deducted_not_added(self):
+        order = self.order()
+        order.refresh_from_db()
+        self.assertEqual(order.total_amount, Decimal('1000.00'))
+        self.assertEqual(order.service_fee, Decimal('0.00'))
+        self.assertEqual(order.commission_rate, Decimal('0.05'))
+        self.assertEqual(order.platform_commission, Decimal('50.00'))
+        self.assertEqual(order.organizer_share, Decimal('950.00'))
 
-    @override_settings(SERVICE_FEE_PERCENT=0)
-    def test_zero_fee_setting_charges_only_subtotal(self):
-        ticket_type = TicketType.objects.create(event=self.event, name='Regular', price=500, quantity_total=10)
-        order = create_order(
-            event=self.event, buyer_name='A', buyer_email='', buyer_phone='254700000001',
-            cart={str(ticket_type.pk): 1},
-        )
+    def test_cent_rounding_reconciles_and_rate_is_snapshotted(self):
+        order = self.order('333.33', quantity=3)
+        with override_settings(PLATFORM_COMMISSION_RATE=Decimal('0.10')):
+            order.recalculate_total()
+        self.assertEqual(order.total_amount, Decimal('999.99'))
+        self.assertEqual(order.platform_commission, Decimal('50.00'))
+        self.assertEqual(order.organizer_share, Decimal('949.99'))
+        self.assertEqual(order.organizer_share + order.platform_commission, order.total_amount)
+
+    def test_half_cent_rounds_up(self):
+        order = self.order('0.10')
+        self.assertEqual(order.platform_commission, Decimal('0.01'))
+        self.assertEqual(order.organizer_share, Decimal('0.09'))
+
+    def test_old_buyer_fee_setting_cannot_add_a_surcharge(self):
+        with override_settings(SERVICE_FEE_PERCENT=0.08):
+            order = self.order()
         self.assertEqual(order.service_fee, 0)
-        self.assertEqual(order.total_amount, 500)
+        self.assertEqual(order.total_amount, 1000)
 
-    @override_settings(SERVICE_FEE_PERCENT=0.08)
-    def test_mpesa_payment_is_created_for_the_fee_inclusive_total(self):
-        """The actual amount sent to Safaricom's STK push must be the total
-        the buyer was shown (tickets + fee), not just the ticket subtotal —
-        otherwise the platform silently eats the fee on every M-Pesa sale."""
+    def test_historical_order_retains_original_amounts(self):
+        order = Order.objects.create(event=self.event, buyer_name='Historical', buyer_phone='254700000001',
+                                     total_amount=1080, service_fee=80)
+        with self.assertRaises(ValueError):
+            order.recalculate_total()
+        order.refresh_from_db()
+        self.assertEqual(order.total_amount, 1080)
+        self.assertEqual(order.service_fee, 80)
+        self.assertEqual(order.platform_commission, 0)
+        self.assertIsNone(order.commission_rate)
+
+    def test_payment_attempt_and_paid_order_cannot_be_repriced(self):
         from apps.payments.models import Payment
-        ticket_type = TicketType.objects.create(event=self.event, name='Regular', price=500, quantity_total=10)
-        order = create_order(
-            event=self.event, buyer_name='A', buyer_email='', buyer_phone='254700000001',
-            cart={str(ticket_type.pk): 1},
-        )
+        order = self.order()
+        Payment.objects.create(order=order, amount=order.total_amount, method='mpesa')
+        with self.assertRaises(ValueError):
+            order.recalculate_total()
+        order = self.order()
+        order.status = OrderStatus.PAID
+        order.save(update_fields=['status'])
+        with self.assertRaises(ValueError):
+            order.recalculate_total()
+
+    def test_mpesa_receives_ticket_total_without_buyer_fee(self):
         from apps.payments.services import initiate_payment
+        from apps.payments.models import Payment
+        order = self.order()
         with override_settings(MPESA_SIMULATE=True):
             initiate_payment(order, phone_number='254700000001')
-        payment = Payment.objects.get(order=order)
-        self.assertEqual(payment.amount, 540)
+        self.assertEqual(Payment.objects.get(order=order).amount, 1000)
+
+    def test_receipt_displays_included_processing_and_official_phone(self):
+        from django.template.loader import render_to_string
+        from apps.tickets.emails import _deliver_order_confirmation
+        order = self.order()
+        _deliver_order_confirmation(order)
+        message = mail.outbox[-1]
+        self.assertIn('Payment processing included.', message.body)
+        self.assertIn('0119 300000', message.body)
+        self.assertIn('tel:+254119300000', message.alternatives[0].content)
+        self.assertNotIn('Service fee:', message.body)
+        order.service_fee = Decimal('80.00')
+        order.total_amount = Decimal('1080.00')
+        old_receipt = render_to_string('emails/order_confirmation.txt', {'order': order})
+        self.assertIn('Service fee: KES 80.00', old_receipt)
 
 
 class WaitlistTests(TestCase):

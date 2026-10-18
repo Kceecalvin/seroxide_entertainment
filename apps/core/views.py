@@ -45,7 +45,8 @@ def contact(request):
                 text=f'From: {contact_message.name} <{contact_message.email}>\n\n{contact_message.message}',
                 html=render_to_string('emails/contact_notification.html', {
                     'contact': contact_message, 'site_name': settings.SITE_NAME,
-                    'site_domain': settings.SITE_DOMAIN, 'support_email': settings.SITE_SUPPORT_EMAIL, 'scheme': 'https',
+                    'site_domain': settings.SITE_DOMAIN, 'support_phone': settings.SITE_SUPPORT_PHONE, 'support_phone_tel': settings.SITE_SUPPORT_PHONE_TEL,
+                    'support_email': settings.SITE_SUPPORT_EMAIL, 'scheme': 'https',
                 }), payload={'reply_to': contact_message.email}, key=f'contact:{contact_message.pk}',
             )
             messages.success(request, "Thanks — we've got your message and will get back to you soon.")

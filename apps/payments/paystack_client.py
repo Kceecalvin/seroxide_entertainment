@@ -24,7 +24,7 @@ class PaystackSignatureError(Exception):
 
 
 def initialize_transaction(*, order, reference: str, callback_url: str) -> dict:
-    """One lump amount for the whole order (tickets + service fee) — unlike
+    """One lump amount for the whole order (historical fees included if present) — unlike
     Stripe's Checkout Sessions, Paystack has no itemized line items, so there's
     no equivalent of the missing-service-fee-line-item bug to worry about here.
 

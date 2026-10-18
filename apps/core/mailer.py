@@ -60,6 +60,7 @@ def deliver(pk):
 def notify(user, subject, message, path):
     context = {'heading': subject, 'message': message, 'action_url': f'https://{settings.SITE_DOMAIN}{path}',
         'site_name': settings.SITE_NAME, 'site_domain': settings.SITE_DOMAIN,
+        'support_phone': settings.SITE_SUPPORT_PHONE, 'support_phone_tel': settings.SITE_SUPPORT_PHONE_TEL,
         'support_email': settings.SITE_SUPPORT_EMAIL, 'scheme': 'https'}
     return queue_email(recipient=user if isinstance(user, str) else user.email, subject=f'{subject} | {settings.SITE_NAME}',
         text=render_to_string('emails/account_notice.txt', context), html=render_to_string('emails/account_notice.html', context))

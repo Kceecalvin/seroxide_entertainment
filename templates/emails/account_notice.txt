@@ -7,3 +7,4 @@
 Open SeroTix: {{ action_url }}
 
 Questions? {{ support_email }}
+Official support: {{ support_phone }}

@@ -149,13 +149,10 @@ def event_detail(request, slug):
             'gallery': event.gallery.all(),
             'lineup': event.lineup.all(),
             'event_json_ld': event_json_ld(event, ticket_types, request),
-            'service_fee_percent': settings.SERVICE_FEE_PERCENT,
-            'service_fee_display': round(settings.SERVICE_FEE_PERCENT * 100, 2),
             'now': timezone.now(),
             'event_image_url': request.build_absolute_uri(event.cover_image.url) if event.cover_image else '',
             'checkout_data': {
                 'types': ticket_types_data,
-                'feePercent': settings.SERVICE_FEE_PERCENT,
                 'checkoutUrl': reverse('tickets:checkout', args=[event.slug]),
                 'csrfToken': get_token(request),
                 'eventTitle': event.title,

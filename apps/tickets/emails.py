@@ -42,6 +42,7 @@ def _deliver_order_confirmation(order, message_id=None):
             'headliner': event.lineup.first() if event.lineup.exists() else None,
             'site_name': settings.SITE_NAME,
             'site_domain': settings.SITE_DOMAIN,
+            'support_phone': settings.SITE_SUPPORT_PHONE, 'support_phone_tel': settings.SITE_SUPPORT_PHONE_TEL,
             'support_email': settings.SITE_SUPPORT_EMAIL,
             'scheme': 'http' if settings.DEBUG else 'https',
         }
@@ -89,6 +90,7 @@ def _deliver_waitlist(entry):
             'event': event,
             'site_name': settings.SITE_NAME,
             'site_domain': settings.SITE_DOMAIN,
+            'support_phone': settings.SITE_SUPPORT_PHONE, 'support_phone_tel': settings.SITE_SUPPORT_PHONE_TEL,
             'support_email': settings.SITE_SUPPORT_EMAIL,
             'scheme': 'http' if settings.DEBUG else 'https',
         }

@@ -20,12 +20,12 @@
   </div>
 
   <div class="revenue-grid">
-    <article><span>CONFIRMED TICKET SALES</span><strong>KES {{ metrics.ticket_sales|floatformat:2|intcomma }}</strong><p>Paid ticket value, excluding service fees</p></article>
-    <article><span>PLATFORM FEES COLLECTED</span><strong>KES {{ metrics.platform_fees|floatformat:2|intcomma }}</strong><p>Before payment processing costs and tax</p></article>
+    <article><span>CONFIRMED TICKET SALES</span><strong>KES {{ metrics.ticket_sales|floatformat:2|intcomma }}</strong><p>Paid ticket value, excluding historical buyer fees</p></article>
+    <article><span>PLATFORM GROSS REVENUE</span><strong>KES {{ metrics.platform_fees|floatformat:2|intcomma }}</strong><p>Before payment processing costs and tax</p></article>
     <article><span>PAID ORDERS</span><strong>{{ metrics.paid_orders|intcomma }}</strong><p>{{ metrics.pending_orders }} order{{ metrics.pending_orders|pluralize }} awaiting payment</p></article>
-    <article><span>AVERAGE PAID ORDER</span><strong>KES {{ metrics.average_order|floatformat:2|intcomma }}</strong><p>Tickets and disclosed service fees</p></article>
+    <article><span>AVERAGE PAID ORDER</span><strong>KES {{ metrics.average_order|floatformat:2|intcomma }}</strong><p>Amount actually paid by buyers</p></article>
   </div>
-  <p class="metrics-note">All-time paid orders. Pending reservations and cancelled or refunded orders are excluded from sales.</p>
+  <p class="metrics-note">Paid orders only; pending and refunded orders are excluded. Platform revenue includes new 5% commissions and historical buyer fees, before processing costs. Organizer allocation: KES {{ metrics.organizer_share|floatformat:2|intcomma }}. Allocations are not payout confirmations.</p>
   <div class="growth-panel"><div><p class="eyebrow">MAKE YOUR NEXT RELEASE WORK HARDER</p><h2>A great night deserves a full house.</h2><p>Publish clear ticket tiers, explain the VIP experience, and share a direct booking link with your audience.</p></div><a class="button button-outline" href="{% url 'contact' %}?enquiry=promote">Plan event promotion ↗</a></div>
   <div class="mt-8 overflow-x-auto border border-white/10">
     <table class="w-full min-w-[720px] border-collapse text-left text-sm">
@@ -53,7 +53,7 @@
             {% if row.event.is_featured %}<span class="ml-2 text-accent">&bull; Featured</span>{% endif %}
           </td>
           <td class="px-4 py-3 tabular-nums text-zinc-300">{{ row.sold }} / {{ row.capacity }}</td>
-          <td class="px-4 py-3 tabular-nums text-zinc-300">KES {{ row.revenue|floatformat:2|intcomma }}</td>
+          <td class="px-4 py-3 tabular-nums text-zinc-300">KES {{ row.revenue|floatformat:2|intcomma }}<div class="text-xs text-zinc-400">Organizer allocation: {{ row.organizer_share|floatformat:2|intcomma }}</div></td>
           <td class="px-4 py-3 text-right">
             <a href="{% url 'dashboard:event_edit' row.event.slug %}" class="text-accent hover:underline">Manage &rarr;</a>
           </td>

@@ -54,6 +54,7 @@ def create_order(*, event: Event, buyer_name: str, buyer_email: str, buyer_phone
     order = Order.objects.create(
         event=event, buyer_name=buyer_name, buyer_email=buyer_email, buyer_phone=buyer_phone,
         buyer=buyer if buyer and buyer.is_authenticated else None,
+        commission_rate=settings.PLATFORM_COMMISSION_RATE,
     )
 
     total_items = 0

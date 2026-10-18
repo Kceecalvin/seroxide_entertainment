@@ -45,8 +45,11 @@ belong on the payment provider's hosted checkout.
 - Buyer: `/account/my-account/`; guest retrieval `/tickets/my-tickets/`.
 
 Owner assigns two named admins and three named scanners after each registers.
-Do not use fictional demo accounts in production. No seller payouts are
-automatically transferred; agree settlement and reconcile provider receipts.
+Do not use fictional demo accounts in production. New orders use a 5% commission: organizers receive 95%, and SeroTix covers
+processing from its commission. There is no buyer surcharge. Historical orders
+retain their original pricing. No seller payouts are automatically transferred;
+agree settlement and reconcile provider receipts. See
+`deploy/commission-release-2026-10-18.md`. Official support: **0119 300000**.
 
 Email: SMTP acceptance is not proof of inbox delivery. Review failed messages
 and provider bounces. `serotix-retry-emails.timer` retries pending/failed outbox

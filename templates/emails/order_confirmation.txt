@@ -12,7 +12,7 @@ YOUR ORDER: {{ order.reference }}
 {% for item in items %}{{ item.ticket_type.name }} x {{ item.quantity }} — KES {{ item.subtotal|floatformat:2 }}
 {% endfor %}
 Ticket subtotal: KES {{ order.subtotal_amount|floatformat:2 }}
-Service fee: KES {{ order.service_fee|floatformat:2 }}
+{% if order.service_fee %}Service fee: KES {{ order.service_fee|floatformat:2 }}{% else %}Payment processing included.{% endif %}
 Total paid: KES {{ order.total_amount|floatformat:2 }}
 
 OPEN YOUR QR TICKETS
@@ -24,3 +24,4 @@ Retrieve tickets with your order reference and checkout phone number:
 
 Need a hand? {{ support_email }}
 See you out there.
+Official support: {{ support_phone }}

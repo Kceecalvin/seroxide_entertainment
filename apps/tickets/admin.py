@@ -15,7 +15,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('reference', 'event', 'buyer_name', 'buyer_phone', 'status', 'total_amount', 'created_at')
     list_filter = ('status', 'event')
     search_fields = ('reference', 'buyer_name', 'buyer_phone', 'buyer_email')
-    readonly_fields = ('reference', 'total_amount', 'created_at', 'updated_at', 'paid_at')
+    readonly_fields = ('reference', 'total_amount', 'service_fee', 'commission_rate', 'platform_commission', 'organizer_share', 'created_at', 'updated_at', 'paid_at')
     inlines = [OrderItemInline]
 
 

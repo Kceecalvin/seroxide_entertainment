@@ -7,6 +7,7 @@ import hmac
 import json
 import time
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.conf import settings
@@ -220,7 +221,12 @@ class StripeCheckoutSessionTests(TestCase):
             event=event, buyer_name='A', buyer_email='a@example.com', buyer_phone='254700000001',
             cart={str(ticket_type.pk): 1},
         )
-        self.assertGreater(order.service_fee, 0, 'setup assumption: SERVICE_FEE_PERCENT must be > 0')
+        # Preserve regression coverage for already-issued historical orders.
+        order.service_fee = Decimal('40.00')
+        order.total_amount = Decimal('540.00')
+        order.commission_rate = None
+        order.platform_commission = Decimal('0.00')
+        order.save()
 
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {'id': 'cs_test_x', 'url': 'https://checkout.stripe.com/x'}
@@ -377,7 +383,7 @@ class PaystackPaymentTests(TestCase):
 
     @override_settings(PAYSTACK_SIMULATE=False)
     @patch('apps.payments.paystack_client.requests.post')
-    def test_initialize_amount_includes_service_fee(self, mock_post):
+    def test_initialize_amount_has_no_buyer_surcharge(self, mock_post):
         from apps.tickets.services import create_order
 
         from .services import initiate_paystack_payment
@@ -392,7 +398,9 @@ class PaystackPaymentTests(TestCase):
             event=event, buyer_name='A', buyer_email='a@example.com', buyer_phone='254700000001',
             cart={str(ticket_type.pk): 1},
         )
-        self.assertGreater(order.service_fee, 0, 'setup assumption: SERVICE_FEE_PERCENT must be > 0')
+        self.assertEqual(order.service_fee, Decimal('0.00'))
+        self.assertEqual(order.total_amount, Decimal('500.00'))
+        self.assertEqual(order.platform_commission, Decimal('25.00'))
 
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {

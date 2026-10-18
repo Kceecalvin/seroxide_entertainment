@@ -74,13 +74,13 @@ class Order(models.Model):
     buyer_phone = models.CharField(max_length=20)
 
     status = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING)
-    # total_amount is what's actually charged (tickets + fee) — the number
-    # every payment call and every "amount to pay" template already uses.
-    # service_fee is broken out separately purely for display/audit — see
-    # settings.SERVICE_FEE_PERCENT and templates/legal/terms.html's
-    # "no hidden fees beyond what's displayed at checkout" promise.
+    # Retain historical buyer fees exactly as charged. New orders have no
+    # buyer surcharge; commission is deducted from ticket proceeds instead.
     service_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # NULL identifies historical orders; never apply new terms retroactively.
+    commission_rate = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True, editable=False)
+    platform_commission = models.DecimalField(max_digits=10, decimal_places=2, default=0, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -96,12 +96,19 @@ class Order(models.Model):
     def subtotal_amount(self):
         return self.total_amount - self.service_fee
 
+    @property
+    def organizer_share(self):
+        """Allocation, not a payout balance. Processor fees are SeroTix's cost."""
+        return self.subtotal_amount - self.platform_commission
+
     def recalculate_total(self):
-        subtotal = sum(item.subtotal for item in self.items.all())
-        fee_rate = Decimal(str(settings.SERVICE_FEE_PERCENT))
-        self.service_fee = (subtotal * fee_rate).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        self.total_amount = subtotal + self.service_fee
-        self.save(update_fields=['service_fee', 'total_amount'])
+        if self.status != OrderStatus.PENDING or self.commission_rate is None or self.payments.exists():
+            raise ValueError('Historical orders and orders with payment attempts cannot be repriced.')
+        subtotal = sum((item.subtotal for item in self.items.all()), Decimal('0.00'))
+        self.service_fee = Decimal('0.00')
+        self.platform_commission = (subtotal * self.commission_rate).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        self.total_amount = subtotal
+        self.save(update_fields=['service_fee', 'total_amount', 'platform_commission'])
         return self.total_amount
 
 

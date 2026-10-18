@@ -32,24 +32,24 @@ test('discovery renders real events, preserves filters and handles no matches', 
   expect(errors).toEqual([]);
 });
 
-test('checkout enforces quantity caps, shows exact fees and traps keyboard focus', async ({ page }) => {
+test('checkout enforces quantity caps, shows ticket-price totals and traps keyboard focus', async ({ page }) => {
   await page.goto(eventUrl);
   const selector = page.getByTestId('ticket-selector');
   await expect(selector).toBeVisible();
   await expect(selector.getByRole('button', { name: 'Select your tickets', exact: true })).toBeDisabled();
   const add = selector.getByRole('button', { name: 'Add one General admission ticket', exact: true });
   await add.click();
-  await expect(selector.getByTestId('checkout-total')).toHaveText('KES 2,160.54');
+  await expect(selector.getByTestId('checkout-total')).toHaveText('KES 2,000.50');
   await add.click(); await add.click();
   await expect(add).toBeDisabled();
-  await expect(selector.getByTestId('checkout-total')).toHaveText('KES 6,481.62');
+  await expect(selector.getByTestId('checkout-total')).toHaveText('KES 6,001.50');
   await selector.getByRole('button', { name: 'Remove one General admission ticket', exact: true }).click();
   const continueButton = selector.getByRole('button', { name: 'Continue with 2 tickets', exact: true });
   await continueButton.click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
   await expect(dialog.getByLabel('Full name', { exact: true })).toBeFocused();
-  await expect(dialog.getByTestId('checkout-total')).toHaveText('KES 4,321.08');
+  await expect(dialog.getByTestId('checkout-total')).toHaveText('KES 4,001');
   for (let index = 0; index < 14; index++) {
     await page.keyboard.press('Tab');
     expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
@@ -69,7 +69,7 @@ test('guest M-Pesa purchase issues real QR tickets in the isolated simulation', 
   await dialog.locator('[name="buyer_email"]').fill('browser-test@example.com');
   await dialog.getByLabel('M-Pesa phone number', { exact: true }).fill('0712345678');
   await dialog.getByRole('checkbox').check();
-  await dialog.getByRole('button', { name: 'Pay KES 2,160.54 with M-Pesa', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Pay KES 2,000.50 with M-Pesa', exact: true }).click();
   await expect(page).toHaveURL(/\/tickets\/order\/SRX-.*\/success\//);
   await expect(page.getByRole('heading', { name: /You're going/ })).toBeVisible();
   await expect(page.getByRole('img', { name: 'Ticket QR code' })).toBeVisible();
@@ -205,10 +205,10 @@ test('an optional VIP upgrade changes the selected tier and discloses the exact 
   await page.goto(eventUrl);
   const selector = page.getByTestId('ticket-selector');
   await selector.getByRole('button', { name: 'Add one General admission ticket', exact: true }).click();
-  await expect(selector.locator('.ticket-upgrade')).toContainText('+KES 2,699.46 incl. fee');
+  await expect(selector.locator('.ticket-upgrade')).toContainText('+KES 2,499.50');
   await selector.getByRole('button', { name: /Switch to VIP/ }).click();
   await expect(selector.getByRole('status', { name: 'General admission quantity', exact: true })).toHaveText('0');
   await expect(selector.getByRole('status', { name: 'VIP quantity', exact: true })).toHaveText('1');
-  await expect(selector.getByTestId('checkout-total')).toHaveText('KES 4,860');
+  await expect(selector.getByTestId('checkout-total')).toHaveText('KES 4,500');
   await expect(selector.locator('.ticket-upgrade')).toHaveCount(0);
 });

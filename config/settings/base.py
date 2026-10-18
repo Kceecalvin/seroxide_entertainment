@@ -2,6 +2,7 @@
 Django settings for seroxide_entertainment project.
 """
 from pathlib import Path
+from decimal import Decimal
 from dotenv import load_dotenv
 import os
 
@@ -22,7 +23,9 @@ SITE_NAME = os.getenv('SITE_NAME', 'SeroTix')
 SITE_TAGLINE = os.getenv('SITE_TAGLINE', 'Tickets to Kenya’s best nights out.')
 SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'serotix.co.ke')
 SITE_SUPPORT_EMAIL = os.getenv('SITE_SUPPORT_EMAIL', 'support@serotix.co.ke')
-SITE_SUPPORT_PHONE = os.getenv('SITE_SUPPORT_PHONE', '+254 700 000000')
+SITE_SUPPORT_PHONE = os.getenv('SITE_SUPPORT_PHONE', '0119 300000')
+_support_digits = ''.join(c for c in SITE_SUPPORT_PHONE if c.isdigit())
+SITE_SUPPORT_PHONE_TEL = '+' + ('254' + _support_digits[1:] if _support_digits.startswith('0') else _support_digits)
 
 # --- Transactional email (ticket confirmations, contact form) ---
 # dev.py overrides EMAIL_BACKEND to the console backend, so nothing here is
@@ -189,12 +192,10 @@ MPESA_SIMULATE = os.getenv('MPESA_SIMULATE', '') == '1'
 PAYMENTS_LIVE = os.getenv('PAYMENTS_LIVE', '0') == '1'
 PAYMENTS_REQUIRE_LIVE = False  # production overrides; isolated tests may simulate
 
-# --- Platform revenue: a disclosed service fee added on top of the ticket
-# price at checkout (industry standard — Eventbrite, Dice, Ticketmaster all
-# do this). Shown as its own line item everywhere the total appears, never
-# folded silently into the ticket price — see templates/legal/terms.html's
-# "no hidden fees beyond what's displayed at checkout" promise.
-SERVICE_FEE_PERCENT = float(os.getenv('SERVICE_FEE_PERCENT', '0.08'))  # 8% default
+# New purchases: organizer receives 95% of ticket value. SeroTix covers
+# processing from its 5% commission. Old SERVICE_FEE_PERCENT env values are
+# deliberately ignored; historical order fees remain unchanged in the DB.
+PLATFORM_COMMISSION_RATE = Decimal('0.05')
 
 # --- Stripe (apps/payments/stripe_client.py) — card payments alongside M-Pesa ---
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')

@@ -5,7 +5,7 @@ A {{ ticket_type.name }} spot just opened up for {{ event.title }}.
 
 {{ event.start_at|date:'D, d M Y · g:i A' }} EAT
 {{ event.venue }}, {{ event.city }}
-{{ ticket_type.name }} — KES {{ ticket_type.price|floatformat:2 }} plus service fee.
+{{ ticket_type.name }} — KES {{ ticket_type.price|floatformat:2 }} with payment processing included.
 
 CHECK TICKETS
 {{ scheme }}://{{ site_domain }}{{ event.get_absolute_url }}#booking
@@ -15,3 +15,4 @@ first served. Your booking is confirmed only after payment.
 
 You requested an availability alert for this event.
 Need a hand? {{ support_email }}
+Official support: {{ support_phone }}

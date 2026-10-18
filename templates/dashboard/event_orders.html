@@ -35,8 +35,8 @@
             <div class="text-xs text-zinc-500">{{ order.buyer_phone }}{% if order.buyer_email %} &middot; {{ order.buyer_email }}{% endif %}</div>
           </td>
           <td class="px-4 py-3">
-            KES {{ order.total_amount|floatformat:0 }}
-            <div class="text-xs text-zinc-500">{{ order.subtotal_amount|floatformat:0 }} tickets + {{ order.service_fee|floatformat:0 }} fee</div>
+            KES {{ order.total_amount|floatformat:2 }}
+            <div class="text-xs text-zinc-500">{% if order.commission_rate != None %}Commission: {{ order.platform_commission|floatformat:2 }} · Organizer allocation: {{ order.organizer_share|floatformat:2 }}{% else %}Historical: {{ order.subtotal_amount|floatformat:2 }} tickets + {{ order.service_fee|floatformat:2 }} fee{% endif %}</div>
           </td>
           <td class="px-4 py-3 uppercase text-xs text-zinc-400">{{ payment.get_method_display|default:"—" }}</td>
           <td class="px-4 py-3 font-mono text-xs text-zinc-400">

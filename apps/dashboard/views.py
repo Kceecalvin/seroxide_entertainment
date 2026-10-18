@@ -43,7 +43,7 @@ def dashboard_home(request):
     paid_orders = Order.objects.filter(status=OrderStatus.PAID)
     per_event = {
         row['event_id']: row for row in paid_orders.values('event_id').annotate(
-            gross=Sum('total_amount'), fees=Sum('service_fee'), orders=Count('id'),
+            gross=Sum('total_amount'), fees=Sum('service_fee'), commission=Sum('platform_commission'), orders=Count('id'),
         )
     }
     paid_quantities = {
@@ -51,13 +51,15 @@ def dashboard_home(request):
         OrderItem.objects.filter(order__status=OrderStatus.PAID)
         .values('order__event_id').annotate(quantity=Sum('quantity'))
     }
-    totals = paid_orders.aggregate(gross=Sum('total_amount'), fees=Sum('service_fee'), orders=Count('id'))
+    totals = paid_orders.aggregate(gross=Sum('total_amount'), fees=Sum('service_fee'), commission=Sum('platform_commission'), orders=Count('id'))
     gross = totals['gross'] or Decimal('0')
     fees = totals['fees'] or Decimal('0')
+    commission = totals['commission'] or Decimal('0')
     order_count = totals['orders']
     metrics = {
         'ticket_sales': gross - fees,
-        'platform_fees': fees,
+        'platform_fees': fees + commission,
+        'organizer_share': gross - fees - commission,
         'paid_orders': order_count,
         'average_order': gross / order_count if order_count else Decimal('0'),
         'pending_orders': Order.objects.filter(status=OrderStatus.PENDING).count(),
@@ -71,7 +73,8 @@ def dashboard_home(request):
             'sold': paid_quantities.get(event.pk, 0),
             'capacity': sum(t.quantity_total for t in types),
             'revenue': sales.get('gross', 0) - sales.get('fees', 0),
-            'fees': sales.get('fees', 0),
+            'fees': sales.get('fees', 0) + sales.get('commission', 0),
+            'organizer_share': sales.get('gross', 0) - sales.get('fees', 0) - sales.get('commission', 0),
         })
     return render(request, 'dashboard/event_list.html', {'rows': rows, 'metrics': metrics})
 

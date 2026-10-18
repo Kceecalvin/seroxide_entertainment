@@ -97,6 +97,7 @@ class TrackedPasswordResetForm(PasswordResetForm):
     def send_mail(self, subject_template_name, email_template_name, context, from_email, to_email, html_email_template_name=None):
         context.update({'site_name': settings.SITE_NAME, 'site_domain': settings.SITE_DOMAIN,
                         'domain': settings.SITE_DOMAIN, 'protocol': 'https', 'scheme': 'https',
+                        'support_phone': settings.SITE_SUPPORT_PHONE, 'support_phone_tel': settings.SITE_SUPPORT_PHONE_TEL,
                         'support_email': settings.SITE_SUPPORT_EMAIL})
         queue_email(recipient=to_email, subject='Reset your SeroTix password',
             text=render_to_string(email_template_name, context),

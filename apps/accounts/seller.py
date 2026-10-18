@@ -37,8 +37,10 @@ def onboard(request):
 @seller_required
 def home(request):
     events = request.user.seller_events.prefetch_related('ticket_types').order_by('-created_at')
-    sales = Order.objects.filter(event__owner=request.user, status=OrderStatus.PAID).aggregate(gross=Sum('total_amount'), fees=Sum('service_fee'), count=Count('id'))
+    sales = Order.objects.filter(event__owner=request.user, status=OrderStatus.PAID).aggregate(gross=Sum('total_amount'), fees=Sum('service_fee'), commission=Sum('platform_commission'), count=Count('id'))
     sales['tickets'] = (sales['gross'] or Decimal(0)) - (sales['fees'] or Decimal(0))
+    sales['commission'] = sales['commission'] or Decimal(0)
+    sales['organizer_share'] = sales['tickets'] - sales['commission']
     return render(request, 'seller/home.html', {'events': events, 'sales': sales})
 
 
