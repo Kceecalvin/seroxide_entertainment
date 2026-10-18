@@ -7,6 +7,7 @@
 {% block og_image %}{% if event_image_url %}<meta property="og:image" content="{{ event_image_url }}">{% endif %}{% endblock %}
 {% block body_class %}event-detail-page{% endblock %}
 {% block content %}
+<div class="event-theme theme-{{ event.theme }}">
 <script type="application/ld+json">{{ event_json_ld|safe }}</script>
 <section class="detail-masthead shell">
   <div class="detail-breadcrumb"><a href="{% url 'events:list' %}#events">← Discover events</a><span>{{ event.get_category_display }} / {{ event.city }}</span></div>
@@ -16,7 +17,7 @@
 <section class="shell detail-layout">
   <div class="detail-story">
     <nav class="detail-tabs" aria-label="Event sections"><a href="#about">The experience</a>{% if lineup %}<a href="#lineup">The lineup</a>{% endif %}<a href="#location">Getting there</a><a href="#booking">Tickets</a></nav>
-    <section id="about" class="story-section"><p class="eyebrow gold">THIS IS THE PLAN</p><h2>A night worth showing up for.</h2><div class="event-description">{{ event.description|linebreaks }}</div><div class="host-info"><span class="host-icon"><svg class="icon"><use href="#i-spark"/></svg></span><div><small>PUT TOGETHER BY</small><strong>{{ event.organizer_name }}</strong></div></div></section>
+    <section id="about" class="story-section"><p class="eyebrow gold">THIS IS THE PLAN</p><h2>An experience worth showing up for.</h2><div class="event-description">{{ event.description|linebreaks }}</div><div class="host-info"><span class="host-icon"><svg class="icon"><use href="#i-spark"/></svg></span><div><small>PUT TOGETHER BY</small><strong>{{ event.organizer_name }}</strong></div></div></section>
     {% if lineup %}<section id="lineup" class="story-section"><p class="eyebrow gold">THE PEOPLE BEHIND THE FEELING</p><h2>Meet your lineup.</h2><div class="lineup-list">{% for act in lineup %}<article>{% if act.photo %}<img src="{{ act.photo.url }}" alt="" width="56" height="56" loading="lazy">{% else %}<span class="performer-initial">{{ act.name|slice:':1' }}</span>{% endif %}<div><h3>{{ act.name }}</h3><p>{{ act.role }}</p></div><span>{{ act.time }}</span></article>{% endfor %}</div></section>{% endif %}
     {% if gallery %}<section class="story-section"><p class="eyebrow gold">GET A FEEL FOR IT</p><h2>The atmosphere.</h2><div class="detail-gallery">{% for photo in gallery %}<a href="{{ photo.image.url }}" target="_blank" rel="noopener" aria-label="View photo: {{ photo.caption|default:event.title }}"><img src="{{ photo.image.url }}" alt="{{ photo.caption|default:event.title }}" width="500" height="500" loading="lazy"></a>{% endfor %}</div></section>{% endif %}
     <section id="location" class="story-section"><p class="eyebrow gold">MEET YOU HERE</p><h2>{{ event.venue }}</h2><p class="location-address">{{ event.address|default:event.city }}{% if event.address %}, {{ event.city }}{% endif %}</p><div class="venue-map"><iframe src="https://www.google.com/maps?q={{ event.venue|urlencode }},{{ event.address|default:event.city|urlencode }},{{ event.city|urlencode }}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map showing {{ event.venue }}, {{ event.city }}"></iframe><a class="button button-outline" href="https://www.google.com/maps/search/?api=1&query={{ event.venue|urlencode }},{{ event.city|urlencode }}" target="_blank" rel="noopener">Get directions <svg class="icon"><use href="#i-arrow-up"/></svg></a></div></section>
@@ -29,5 +30,6 @@
     <div class="booking-help"><svg class="icon"><use href="#i-shield"/></svg><p>Plans made with confidence.<br><span>Secure payment. A ticket that's yours.</span></p></div>
   </aside>
 </section>
+</div>
 {% if related_events %}<section class="shell related-section"><div class="section-heading"><div><p class="eyebrow gold">KEEP THE GOOD TIMES GOING</p><h2>More your <em>speed.</em></h2></div><a class="text-link" href="{% url 'events:list' %}#events">All experiences ↗</a></div><div class="experience-grid">{% for event in related_events %}{% include 'events/card.html' %}{% endfor %}</div></section>{% endif %}
 {% endblock %}

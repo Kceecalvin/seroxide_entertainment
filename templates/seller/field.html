@@ -1,0 +1,6 @@
+<div class="studio-field{% if field.errors %} studio-field-error{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}{% if not field.field.required %} <span class="studio-optional">Optional</span>{% endif %}</label>
+  {{ field }}
+  {% if field.help_text %}<p class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {{ field.errors }}
+</div>

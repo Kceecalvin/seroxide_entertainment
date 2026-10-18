@@ -17,6 +17,15 @@ class EventCategory(models.TextChoices):
 
 
 class Event(models.Model):
+    class Theme(models.TextChoices):
+        CLASSIC = 'classic', 'SeroTix signature'
+        AFTER_DARK = 'after-dark', 'After Dark'
+        COASTAL = 'coastal', 'Coastal'
+        GOLD_NIGHT = 'gold-night', 'Gold Night'
+        ELECTRIC = 'electric', 'Electric'
+
+    theme = models.CharField(max_length=16, choices=Theme.choices, default=Theme.CLASSIC)
+
     class ReviewStatus(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         PENDING = 'pending', 'In review'

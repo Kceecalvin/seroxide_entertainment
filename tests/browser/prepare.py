@@ -87,7 +87,7 @@ def prepare():
         guard = User.objects.create_user(username, username+'@example.test', 'BrowserGate123!')
         AccountProfile.objects.create(user=guard, role='buyer')
     event = Event.objects.get(slug='coastal-sound-festival')
-    event.owner=owner; event.save()
+    event.owner=owner; event.theme='coastal'; event.save()
     other_event=Event.objects.get(slug='nairobi-after-dark')
     other_event.owner=other; other_event.save()
     GateAssignment.objects.create(user=User.objects.get(username='gate-existing'), event=event,

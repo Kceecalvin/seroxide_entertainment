@@ -1,0 +1,17 @@
+{{ ticket_form.non_field_errors }}
+{% include 'seller/field.html' with field=ticket_form.name %}
+<div class="studio-field-grid">
+  {% include 'seller/field.html' with field=ticket_form.price %}
+  {% include 'seller/field.html' with field=ticket_form.quantity_total %}
+</div>
+<details class="studio-options" {% if ticket_form.errors %}open{% endif %}>
+  <summary>More ticket options <span>Description, limits & sales closing time</span></summary>
+  {% include 'seller/field.html' with field=ticket_form.description %}
+  <div class="studio-field-grid">
+    {% include 'seller/field.html' with field=ticket_form.max_per_order %}
+    {% include 'seller/field.html' with field=ticket_form.sales_end %}
+  </div>
+  <p class="market-muted">All times are Nairobi time (EAT).</p>
+  <label class="market-consent">{{ ticket_form.is_active }} <span>Available for sale when the event is published</span></label>
+  {{ ticket_form.is_active.errors }}
+</details>

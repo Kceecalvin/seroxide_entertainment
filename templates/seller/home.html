@@ -1,3 +1,40 @@
 {% extends 'base.html' %}{% load humanize %}
-{% block title %}Seller studio{% endblock %}
-{% block content %}<section class="shell market-shell"><div class="market-heading"><div><p class="eyebrow gold">{{ request.user.account_profile.business_name }} / SELLER STUDIO</p><h1>Make it<br><em>unmissable.</em></h1></div><a class="button button-primary" href="{% url 'accounts:seller_create' %}">+ Create an event</a></div><div class="market-metrics"><article><span>Paid ticket sales</span><strong>KES {{ sales.tickets|floatformat:2|intcomma }}</strong></article><article><span>SeroTix commission</span><strong>KES {{ sales.commission|floatformat:2|intcomma }}</strong></article><article><span>Organizer allocation</span><strong>KES {{ sales.organizer_share|floatformat:2|intcomma }}</strong></article><article><span>Paid orders</span><strong>{{ sales.count }}</strong></article><article><span>Your events</span><strong>{{ events|length }}</strong></article></div><p class="market-muted">Paid orders only; refunded orders and pending reservations are excluded. New sales: 5% commission, 95% for you. SeroTix covers processing costs from its commission. Historical orders retain their original charges. These allocations are not transferred payouts; settlement timing is agreed separately.</p><div class="market-cards">{% for event in events %}<article class="market-event"><a href="{% url 'accounts:seller_edit' event.pk %}"><div class="market-cover">{% if event.cover_image %}<img src="{{ event.cover_image.url }}" alt="{{ event.title }}" loading="lazy">{% else %}<span>Your next<br>headline.</span>{% endif %}<span class="market-badge">{{ event.get_review_status_display }}</span></div><div class="market-event-body"><p class="eyebrow">{{ event.start_at|date:'d M Y' }} · {{ event.city }}</p><h2>{{ event.title }}</h2><span>Open event studio ↗</span></div></a><div class="gate-actions" style="padding:1rem"><a href="{% url 'accounts:gate_team' event.pk %}">Gate team ↗</a><a href="{% url 'tickets:gate_supervisor' event.pk %}">Gate overview ↗</a></div></article>{% empty %}<div class="market-panel"><h2>Your first event starts here.</h2><p>A cover, a story, a venue, and a ticket. Let’s bring it together.</p><a class="button button-primary" href="{% url 'accounts:seller_create' %}">Create your first draft</a></div>{% endfor %}</div></section>{% endblock %}
+{% block title %}Organizer studio{% endblock %}
+{% block content %}
+<section class="shell market-shell studio-workspace">
+  <header class="studio-welcome">
+    <div><p class="eyebrow gold">{{ request.user.account_profile.business_name }} / ORGANIZER STUDIO</p><h1>Your events.<br><em>All together.</em></h1><p>Create the experience. Keep the details under control.</p></div>
+    <div class="studio-welcome-action"><span class="studio-orbit" aria-hidden="true">✦</span><a class="button button-primary" href="{% url 'accounts:seller_create' %}">+ Create an event</a><span>Start privately. Publish when you’re ready.</span></div>
+  </header>
+  <div class="market-metrics studio-metrics" aria-label="All your events, lifetime paid sales">
+    <article><span>Paid ticket sales · all events</span><strong>KES {{ sales.tickets|floatformat:2|intcomma }}</strong></article>
+    <article><span>Your allocation · before settlement</span><strong>KES {{ sales.organizer_share|floatformat:2|intcomma }}</strong></article>
+    <article><span>Paid orders / your events</span><strong>{{ sales.count }} <small>/ {{ event_count }}</small></strong></article>
+  </div>
+  <details class="studio-money-note"><summary>How your earnings work <span>95% for you on new sales</span></summary><p>Paid orders only; refunded orders and pending reservations are excluded. SeroTix commission: <strong>KES {{ sales.commission|floatformat:2|intcomma }}</strong>. New sales: 5% commission, 95% for you. SeroTix covers processing costs from its commission. Historical orders retain their original charges. These allocations are not transferred payouts; settlement timing is agreed separately. Totals cover all your events, even when you filter below.</p></details>
+  <section class="studio-event-list" aria-labelledby="your-events">
+    <div class="studio-section-heading"><div><p class="eyebrow gold">YOUR CONTROL ROOM</p><h2 id="your-events">Find your next move.</h2></div><span class="studio-count">{{ event_count }} event{{ event_count|pluralize }}</span></div>
+    <form method="get" class="market-form studio-search" role="search" aria-label="Search your events">
+      <div><label for="event-search">Find an event</label><input id="event-search" type="search" name="q" value="{{ query }}" placeholder="Event name, city or venue" maxlength="200"></div>
+      <div><label for="event-status">Event status</label><select name="status" id="event-status">{% for value,label in status_options %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <button class="button button-primary" type="submit">Find events</button>
+      {% if query or selected_status %}<a class="studio-clear" href="{% url 'accounts:seller_home' %}">Clear filters</a>{% endif %}
+    </form>
+    <div class="market-cards studio-cards">
+      {% for event in events %}
+      <article class="market-event">
+        <a href="{% url 'accounts:seller_edit' event.pk %}" aria-label="Manage {{ event.title }}">
+          <div class="market-cover">{% if event.cover_image %}<img src="{{ event.cover_image.url }}" alt="" loading="lazy">{% else %}<span>Your next<br>headline.</span>{% endif %}<span class="market-badge">{% if event.is_published %}Live{% else %}{{ event.get_review_status_display }}{% endif %}</span></div>
+          <div class="market-event-body"><p class="eyebrow">{{ event.start_at|date:'d M Y' }} · {{ event.city }}</p><h2>{{ event.title }}</h2><p class="studio-event-hint">{% if event.review_status == 'changes' %}Review the feedback and update your listing.{% elif event.review_status == 'pending' %}We’ll email you after the review.{% elif event.is_published %}Your listing is public. Get your gate team ready.{% else %}Pick up your draft whenever you’re ready.{% endif %}</p><span class="studio-manage">{% if event.review_status == 'draft' or event.review_status == 'changes' %}Continue editing{% else %}Manage event{% endif %} <span aria-hidden="true">↗</span></span></div>
+        </a>
+        <div class="studio-event-actions"><a href="{% url 'accounts:gate_team' event.pk %}">Gate team ↗</a><a href="{% url 'tickets:gate_supervisor' event.pk %}">Gate overview ↗</a>{% if event.is_published %}<a href="{{ event.get_absolute_url }}">Public listing ↗</a>{% else %}<a href="{% url 'accounts:seller_preview' event.pk %}">Preview ↗</a>{% endif %}</div>
+      </article>
+      {% empty %}
+      <div class="market-panel studio-empty">{% if event_count %}<span class="studio-empty-icon" aria-hidden="true">⌕</span><h2>No matching events.</h2><p>Try a different name or status. Your other events are still here.</p><a class="button button-outline" href="{% url 'accounts:seller_home' %}">Show all events</a>{% else %}<span class="studio-empty-icon" aria-hidden="true">✦</span><h2>Your first event starts here.</h2><p>Save the essentials, add your tickets, then send it for review. Your draft stays private.</p><a class="button button-primary" href="{% url 'accounts:seller_create' %}">Create your first draft</a>{% endif %}</div>
+      {% endfor %}
+    </div>
+    {% if events.has_other_pages %}<nav class="gate-actions studio-pagination" aria-label="Event pages">{% if events.has_previous %}<a class="button button-outline" href="?q={{ query|urlencode }}&status={{ selected_status|urlencode }}&page={{ events.previous_page_number }}">← Previous</a>{% endif %}<span>Page {{ events.number }} of {{ events.paginator.num_pages }}</span>{% if events.has_next %}<a class="button button-outline" href="?q={{ query|urlencode }}&status={{ selected_status|urlencode }}&page={{ events.next_page_number }}">Next →</a>{% endif %}</nav>{% endif %}
+  </section>
+  <div class="studio-help"><div><strong>A hand when you need one.</strong><p>Help with your listing, tickets or event-day setup.</p></div><a href="tel:+254119300000">Call 0119300000 ↗</a></div>
+</section>
+{% endblock %}
