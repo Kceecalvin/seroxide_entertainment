@@ -3,12 +3,13 @@ from django.conf import settings
 
 def site_branding(request):
     """Expose site-wide branding constants to every template."""
-    from apps.accounts.permissions import role_for
+    from apps.accounts.permissions import role_for, has_gate_access
     role = role_for(request.user)
     from apps.payments.availability import available_methods
     methods = available_methods()
     return {
         'account_role': role,
+        'HAS_GATE_ACCESS': has_gate_access(request.user),
         'LOCAL_DEMO': getattr(settings, 'LOCAL_DEMO_ENABLED', False) and settings.DEBUG,
         'platform_admin': role in ('admin', 'superadmin'),
         'SITE_NAME': settings.SITE_NAME,

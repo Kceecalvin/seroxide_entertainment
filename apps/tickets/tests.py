@@ -144,13 +144,13 @@ class ScannerCheckInTests(TestCase):
         self.client.force_login(self.staff)
 
     def _scan(self):
-        return self.client.post(reverse('tickets:scanner_check', args=[self.ticket.serial]))
+        return self.client.post(reverse('tickets:scanner_check', args=[self.ticket.serial]), {'event_id': self.event.pk})
 
     def test_first_scan_checks_in(self):
         resp = self._scan()
         data = resp.json()
         self.assertTrue(data['ok'])
-        self.assertEqual(data['result'], TicketStatus.USED)
+        self.assertEqual(data['result'], 'checked_in')
 
     def test_second_scan_is_rejected_as_already_used(self):
         self._scan()
@@ -161,12 +161,12 @@ class ScannerCheckInTests(TestCase):
 
     def test_unknown_serial_returns_not_found(self):
         import uuid
-        resp = self.client.post(reverse('tickets:scanner_check', args=[uuid.uuid4()]))
+        resp = self.client.post(reverse('tickets:scanner_check', args=[uuid.uuid4()]), {'event_id': self.event.pk})
         self.assertEqual(resp.status_code, 404)
 
     def test_scanner_requires_staff_login(self):
         anon_client = Client()
-        resp = anon_client.post(reverse('tickets:scanner_check', args=[self.ticket.serial]))
+        resp = anon_client.post(reverse('tickets:scanner_check', args=[self.ticket.serial]), {'event_id': self.event.pk})
         self.assertNotEqual(resp.status_code, 200)
 
 

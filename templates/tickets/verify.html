@@ -3,7 +3,9 @@
 {% block body_class %}tickets-page app-utility{% endblock %}
 {% block content %}
 <section class="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-4 text-center">
-  {% if ticket.status == 'used' %}
+  {% if ticket.order.status != 'paid' %}
+  <h1 class="mt-4 font-display text-2xl font-bold">Payment not confirmed</h1><p>Do not admit this ticket. Ask the event manager for help.</p>
+  {% elif ticket.status == 'used' %}
   <div class="grid h-20 w-20 place-items-center rounded-full bg-amber-500/15 text-amber-400">
     <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
   </div>

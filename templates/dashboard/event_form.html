@@ -9,6 +9,7 @@
   <div class="mt-3 flex items-center justify-between">
     <h1 class="font-display text-2xl font-bold">{% if event %}Edit event{% else %}New event{% endif %}</h1>
     {% if event %}
+    <a class="button button-outline" href="{% url 'accounts:gate_team' event.pk %}">Gate team</a>
     <a href="{% url 'dashboard:event_orders' event.slug %}" class="btn-press rounded-full bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-wide text-zinc-200 transition hover:bg-white/10">
       Orders &amp; refunds
     </a>

@@ -1,4 +1,5 @@
 from django import forms
+from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
@@ -22,7 +23,7 @@ User = get_user_model()
 class AccessForm(forms.Form):
     user = forms.ModelChoiceField(queryset=User.objects.filter(is_superuser=False).order_by('username'))
     role = forms.ChoiceField(choices=AccountProfile.Role.choices)
-    events = forms.ModelMultipleChoiceField(queryset=Event.objects.all(), required=False, widget=forms.CheckboxSelectMultiple)
+    events = forms.ModelMultipleChoiceField(queryset=Event.objects.all(), required=False, widget=forms.CheckboxSelectMultiple, help_text='Scanner grants use an event-time shift (up to 24 hours). Use the event Gate team page for custom shifts and supervisors.')
 
 
 @superuser_required
@@ -30,7 +31,7 @@ class AccessForm(forms.Form):
 def team(request):
     form = AccessForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        user = User.objects.select_for_update().get(pk=form.cleaned_data['user'].pk)
+        user = User.objects.select_for_update(no_key=True).get(pk=form.cleaned_data['user'].pk)
         if user.is_superuser or user.pk == request.user.pk:
             raise PermissionDenied
         profile, _ = AccountProfile.objects.get_or_create(user=user)
@@ -42,7 +43,9 @@ def team(request):
         user.save(update_fields=['is_staff'])
         GateAssignment.objects.filter(user=user).delete()
         if profile.role == 'scanner':
-            GateAssignment.objects.bulk_create([GateAssignment(user=user, event=e) for e in form.cleaned_data['events']])
+            GateAssignment.objects.bulk_create([GateAssignment(user=user, event=e, created_by=request.user,
+                starts_at=e.start_at-timedelta(hours=2), ends_at=e.start_at+timedelta(hours=12))
+                for e in form.cleaned_data['events']])
         AccessAudit.objects.create(actor=request.user, subject=user, detail=f'{before} → {profile.role}; events: {list(form.cleaned_data["events"].values_list("pk", flat=True))}')
         messages.success(request, 'Access updated. Scanner assignments take effect immediately.')
         return redirect('dashboard:team')

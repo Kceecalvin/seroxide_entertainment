@@ -44,7 +44,13 @@ belong on the payment provider's hosted checkout.
 - Gate scanner: `/tickets/scan/`; explicitly assigned events only.
 - Buyer: `/account/my-account/`; guest retrieval `/tickets/my-tickets/`.
 
-Owner assigns two named admins and three named scanners after each registers.
+Owner assigns the initial two platform admins. Each organizer can invite their
+own gate team from an event’s Gate team page; the initial three scanners are not
+a platform-wide limit. Guards accept a personal email invitation, choose the
+event at `/tickets/scan/`, and scan only during their assigned shift. Event
+supervisors can view admission activity without financial access. Revocation
+blocks further scans on signed-in phones. See
+`deploy/gate-teams-release-2026-10-18.md`.
 Do not use fictional demo accounts in production. New orders use a 5% commission: organizers receive 95%, and SeroTix covers
 processing from its commission. There is no buyer surcharge. Historical orders
 retain their original pricing. No seller payouts are automatically transferred;

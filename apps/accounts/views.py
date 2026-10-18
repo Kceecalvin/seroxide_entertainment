@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from apps.core.ratelimit import ratelimit
 
@@ -13,6 +14,9 @@ def signup(request):
     if request.user.is_authenticated:
         return redirect('accounts:my_account')
 
+    next_url = request.POST.get('next', request.GET.get('next', ''))
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        next_url = ''
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
@@ -21,11 +25,13 @@ def signup(request):
             from django.urls import reverse
             notify(user, 'Welcome to SeroTix', 'Your account is ready. Find your next experience and keep your tickets together.', reverse('accounts:my_account'))
             login(request, user)
+            if next_url:
+                return redirect(next_url)
             return redirect('accounts:seller_onboard' if form.cleaned_data.get('intent') == 'seller' else 'accounts:my_account')
     else:
         form = SignupForm()
 
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request, 'accounts/signup.html', {'form': form, 'next': next_url})
 
 
 @login_required(login_url='accounts:login')
@@ -54,6 +60,8 @@ def account_settings(request):
 
 @login_required(login_url='accounts:login')
 def landing(request):
-    from .permissions import role_for
+    from .permissions import role_for, has_gate_access
     role = role_for(request.user)
+    if role == 'buyer' and has_gate_access(request.user):
+        return redirect('tickets:scanner')
     return redirect({'superadmin': 'dashboard:home', 'admin': 'dashboard:home', 'scanner': 'tickets:scanner', 'seller': 'accounts:seller_home'}.get(role, 'accounts:my_account'))

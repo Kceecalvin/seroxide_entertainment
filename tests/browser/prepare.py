@@ -76,6 +76,31 @@ def prepare():
             sales_end=timezone.now() - timedelta(days=1),
         )
         LineupItem.objects.create(event=event, name='The Coastal Collective', role='Live band', time='8:00 PM')
+    from django.contrib.auth import get_user_model
+    from apps.accounts.models import AccountProfile, GateAssignment
+    User = get_user_model()
+    owner = User.objects.create_user('gate-owner', 'gate-owner@example.test', 'BrowserGate123!')
+    AccountProfile.objects.create(user=owner, role='seller', business_name='Client A events')
+    other = User.objects.create_user('gate-other-owner', 'gate-other@example.test', 'BrowserGate123!')
+    AccountProfile.objects.create(user=other, role='seller', business_name='Client B events')
+    for username in ['gate-invitee','gate-existing']:
+        guard = User.objects.create_user(username, username+'@example.test', 'BrowserGate123!')
+        AccountProfile.objects.create(user=guard, role='buyer')
+    event = Event.objects.get(slug='coastal-sound-festival')
+    event.owner=owner; event.save()
+    other_event=Event.objects.get(slug='nairobi-after-dark')
+    other_event.owner=other; other_event.save()
+    GateAssignment.objects.create(user=User.objects.get(username='gate-existing'), event=event,
+                                  is_supervisor=True, gate_label='North gate')
+    # Private test tickets don't change public catalog counts or trigger mail.
+    from apps.tickets.models import Order, OrderItem, Ticket
+    from uuid import UUID
+    for target, serial in [(event, '11111111-1111-4111-8111-111111111111'),
+                           (other_event, '22222222-2222-4222-8222-222222222222')]:
+        tier=target.ticket_types.get(name='General admission')
+        order=Order.objects.create(event=target,status='paid',buyer_name='Gate fixture',buyer_phone='254700000099',total_amount=2000.50)
+        item=OrderItem.objects.create(order=order,ticket_type=tier,quantity=1,unit_price=2000.50)
+        Ticket.objects.create(order_item=item,serial=UUID(serial))
     print('Browser fixtures ready in /tmp/serotix-browser-tests.sqlite3; all payments simulated.')
 
 

@@ -6,7 +6,7 @@
 {% include 'includes/auth-story.html' %}
 <div class="auth-panel"><a class="auth-back" href="{% url 'events:list' %}">← Back to the good stuff</a><p class="eyebrow gold">YOUR NEXT CHAPTER STARTS HERE</p><h1>Make room for good nights.</h1><p class="auth-intro">Keep your tickets together and your next experience within reach.</p>
   <form method="post" class="auth-form space-y-4">
-    {% csrf_token %}
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
     <fieldset class="market-signup-choice"><legend>I’m here to</legend>{{ form.intent }}{{ form.intent.errors }}</fieldset>
     {% if form.non_field_errors %}
     <p class="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ form.non_field_errors }}</p>
@@ -46,6 +46,6 @@
       Create account
     </button>
   </form>
-<p class="auth-switch">Already one of us? <a href="{% url 'accounts:login' %}">Welcome back ↗</a></p><p class="auth-guest-note"><svg class="icon"><use href="#i-shield"/></svg> Just here for tickets? Guest checkout is always available.</p></div>
+<p class="auth-switch">Already one of us? <a href="{% url 'accounts:login' %}?next={{ next|urlencode }}">Welcome back ↗</a></p><p class="auth-guest-note"><svg class="icon"><use href="#i-shield"/></svg> Just here for tickets? Guest checkout is always available.</p></div>
 </section>
 {% endblock %}

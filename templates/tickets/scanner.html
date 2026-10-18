@@ -2,13 +2,13 @@
 {% load static %}
 {% block title %}Scan tickets{% endblock %}
 {% block body_class %}tickets-page app-utility{% endblock %}
-{% block content %}<div class="shell market-callout"><strong>Your gate access</strong><span>{% for event in assigned_events %}{{ event.title }}{% if not forloop.last %} · {% endif %}{% empty %}No events assigned. Ask the Super Admin to assign your event before scanning.{% endfor %}</span></div>
+{% block content %}<div class="shell market-callout"><strong>{{ event.title }}</strong><span>{{ event.organizer_name }} · {% if assignment %}{{ assignment.gate_label }} · Shift ends {{ assignment.ends_at|date:'d M, H:i' }} EAT{% else %}Event operations{% endif %}</span><a href="{% url 'tickets:scanner' %}">Change event</a>{% if can_supervise %}<a href="{% url 'tickets:gate_supervisor' event.pk %}">Gate overview</a>{% endif %}<form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="button button-outline">Sign out</button></form></div>
 <section class="mx-auto max-w-lg px-4 py-10 sm:px-6 lg:px-8">
   <h1 class="font-display text-2xl font-bold">Scan tickets</h1>
   <p class="mt-1 text-sm text-zinc-400">Point the camera at a ticket's QR code. Check-in happens automatically.</p>
 
   <div
-    x-data="ticketScanner('{{ csrf_token }}')"
+    x-data="ticketScanner('{{ csrf_token }}', {{ event.pk }})"
     x-init="start()"
     class="mt-6">
 
@@ -34,6 +34,7 @@
       </div>
     </div>
 
+    <button type="button" class="button button-outline" @click="stopCamera()">Stop camera</button>
     <div class="mt-4 flex items-center justify-between text-sm">
       <span class="text-zinc-400">Checked in this session</span>
       <span class="font-display text-xl font-bold text-accent tabular-nums" x-text="checkedInCount"></span>

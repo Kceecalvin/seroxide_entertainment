@@ -29,6 +29,6 @@
       Log in
     </button>
   <p><a href="{% url 'accounts:password_reset' %}">Forgot your password?</a></p></form>
-<p class="auth-switch">New around here? <a href="{% url 'accounts:signup' %}">Make yourself at home ↗</a></p><p class="auth-guest-note"><svg class="icon"><use href="#i-shield"/></svg> Just here for tickets? Guest checkout is always available.</p></div>
+<p class="auth-switch">New around here? <a href="{% url 'accounts:signup' %}?next={{ next|urlencode }}">Make yourself at home ↗</a></p><p class="auth-guest-note"><svg class="icon"><use href="#i-shield"/></svg> Just here for tickets? Guest checkout is always available.</p></div>
 </section>
 {% endblock %}

@@ -3,7 +3,7 @@ from django.urls import path, reverse_lazy
 
 from apps.core.ratelimit import ratelimit
 
-from . import views, seller
+from . import views, seller, gates
 from .forms import AccountAuthenticationForm, TrackedPasswordResetForm
 
 app_name = 'accounts'
@@ -15,6 +15,10 @@ _login_view = ratelimit(key_prefix='buyer-login', limit=20, window_seconds=600)(
 )
 
 urlpatterns = [
+    path('studio/<int:pk>/gate-team/', gates.team, name='gate_team'),
+    path('studio/<int:pk>/gate-team/<int:assignment_id>/revoke/', gates.revoke, name='gate_revoke'),
+    path('studio/<int:pk>/gate-invites/<int:invitation_id>/revoke/', gates.revoke_invite, name='gate_invite_revoke'),
+    path('gate-invites/<str:token>/', gates.accept, name='gate_accept'),
     path('home/', views.landing, name='landing'),
     path('sell/', seller.onboard, name='seller_onboard'),
     path('studio/', seller.home, name='seller_home'),

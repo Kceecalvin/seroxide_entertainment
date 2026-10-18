@@ -155,3 +155,24 @@ class Ticket(models.Model):
     @property
     def order(self):
         return self.order_item.order
+
+
+class GateScanLog(models.Model):
+    RESULT_LABELS = {'checked_in': 'Admitted', 'already_used': 'Already admitted',
+                     'wrong_event': 'Wrong event', 'not_found': 'Unrecognized ticket',
+                     'unpaid': 'Payment not confirmed', 'cancelled': 'Cancelled ticket'}
+
+    @property
+    def result_label(self):
+        return self.RESULT_LABELS.get(self.result, 'Other entry check')
+
+    event = models.ForeignKey('events.Event', on_delete=models.CASCADE, related_name='gate_scans')
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='+')
+    ticket = models.ForeignKey(Ticket, on_delete=models.SET_NULL, null=True, blank=True, related_name='gate_scans')
+    result = models.CharField(max_length=24)
+    gate_label = models.CharField(max_length=80, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+        indexes = [models.Index(fields=['event', '-created_at'])]

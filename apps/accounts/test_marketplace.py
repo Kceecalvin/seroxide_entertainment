@@ -107,13 +107,13 @@ class MarketplaceTests(TestCase):
     def test_scanner_assignment_and_paid_state_and_audit(self):
         order=self.paid_order();ticket=Ticket.objects.get(order_item__order=order)
         self.login(self.scanner);url=reverse('tickets:scanner_check',args=[ticket.serial])
-        self.assertEqual(self.client.post(url).status_code,403)
+        self.assertEqual(self.client.post(url, {'event_id': self.event.pk}).status_code,403)
         GateAssignment.objects.create(user=self.scanner,event=self.event)
         Order.objects.filter(pk=order.pk).update(status='cancelled')
-        self.assertEqual(self.client.post(url).status_code,409)
+        self.assertEqual(self.client.post(url, {'event_id': self.event.pk}).status_code,409)
         Order.objects.filter(pk=order.pk).update(status='paid')
-        self.assertTrue(self.client.post(url).json()['ok'])
-        self.assertFalse(self.client.post(url).json()['ok'])
+        self.assertTrue(self.client.post(url, {'event_id': self.event.pk}).json()['ok'])
+        self.assertFalse(self.client.post(url, {'event_id': self.event.pk}).json()['ok'])
         ticket.refresh_from_db();self.assertEqual(ticket.checked_in_by_id,self.scanner.pk)
 
     def test_order_reference_alone_does_not_expose_tickets_or_payment_status(self):

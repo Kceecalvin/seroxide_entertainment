@@ -4,7 +4,7 @@ from datetime import timedelta
 from threading import Barrier
 from unittest import skipUnless
 from django.contrib.auth import get_user_model
-from django.db import close_old_connections, connection
+from django.db import close_old_connections, connection, transaction
 from django.test import RequestFactory, TransactionTestCase, override_settings
 from django.utils import timezone
 from apps.accounts.models import AccountProfile, GateAssignment
@@ -60,7 +60,7 @@ class ConcurrentTicketTests(TransactionTestCase):
         def scan(user):
             close_old_connections()
             try:
-                request=RequestFactory().post('/tickets/scan/api/fixture/',REMOTE_ADDR=f'127.0.0.{user.pk}')
+                request=RequestFactory().post('/tickets/scan/api/fixture/', {'event_id': self.event.pk}, REMOTE_ADDR=f'127.0.0.{user.pk}')
                 request.user=user
                 barrier.wait(timeout=10)
                 return scanner_check(request,ticket.serial).content
@@ -75,3 +75,37 @@ class ConcurrentTicketTests(TransactionTestCase):
         ticket.refresh_from_db()
         self.assertEqual(ticket.status,'used')
         self.assertIn(ticket.checked_in_by_id,[u.pk for u in users])
+
+    def test_revocation_committed_while_scan_waits_prevents_admission(self):
+        from threading import Event as Signal
+        from .models import GateScanLog
+        order=self.reserve();fulfill_order(order)
+        ticket=Ticket.objects.get(order_item__order=order)
+        user=get_user_model().objects.create_user(username='revocation-fixture')
+        assignment=GateAssignment.objects.create(user=user,event=self.event)
+        locked, attempting = Signal(), Signal()
+        def revoke():
+            close_old_connections()
+            try:
+                with transaction.atomic():
+                    Event.objects.select_for_update().get(pk=self.event.pk)
+                    GateAssignment.objects.filter(pk=assignment.pk).update(revoked_at=timezone.now())
+                    locked.set()
+                    if not attempting.wait(10):raise RuntimeError('Scanner did not start')
+            finally:close_old_connections()
+        def scan():
+            close_old_connections()
+            try:
+                if not locked.wait(10):raise RuntimeError('Revocation did not start')
+                attempting.set()
+                request=RequestFactory().post('/tickets/scan/api/fixture/', {'event_id':self.event.pk})
+                request.user=user
+                return scanner_check(request,ticket.serial).status_code
+            finally:close_old_connections()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            revoked=pool.submit(revoke);scanned=pool.submit(scan)
+            revoked.result(timeout=15)
+            self.assertEqual(scanned.result(timeout=15),403)
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.status,'valid')
+        self.assertFalse(GateScanLog.objects.filter(result='checked_in').exists())

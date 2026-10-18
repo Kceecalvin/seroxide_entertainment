@@ -1,5 +1,7 @@
 from django.contrib import messages
-from apps.accounts.permissions import scanner_required, can_scan, is_admin
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from apps.accounts.permissions import scanner_required, can_scan, is_admin, gate_assignments, can_supervise
 from .access import grant_order, require_order_access
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
@@ -17,7 +19,7 @@ from apps.payments.availability import available_methods
 
 from .forms import CheckoutForm, MyTicketsLookupForm, WaitlistForm
 from .models import Order, OrderStatus, Ticket, TicketStatus, TicketType, WaitlistEntry
-from .services import OrderError, create_order, admit_ticket
+from .services import OrderError, create_order
 
 
 @require_POST
@@ -138,69 +140,63 @@ def my_tickets(request):
     return render(request, 'tickets/my_tickets.html', {'form': form, 'order': order, 'error': error})
 
 
+@never_cache
 @scanner_required
 def verify_ticket(request, serial):
-    ticket = get_object_or_404(
-        Ticket.objects.select_related('order_item__ticket_type', 'order_item__order__event'), serial=serial
-    )
-    if not can_scan(request.user, ticket.order_item.order.event_id):
-        raise PermissionDenied
+    event_id = request.session.get('gate_event_id')
+    if not event_id:
+        messages.info(request, 'Choose the event you are working at, then scan the ticket again.')
+        return redirect('tickets:scanner')
+    if not can_scan(request.user, event_id):
+        raise PermissionDenied('Your gate access has ended.')
+    ticket = get_object_or_404(Ticket.objects.select_related('order_item__ticket_type', 'order_item__order__event'),
+                              serial=serial, order_item__order__event_id=event_id)
     if request.method == 'POST':
-        # A single conditional UPDATE, not read-then-write: two staff hitting
-        # "check in" on the same ticket at the same instant can't both win —
-        # the WHERE status=VALID clause means only one UPDATE can match.
-        checked_in_at = timezone.now()
-        updated = admit_ticket(ticket, request.user, checked_in_at)
-        if updated:
-            ticket.status = TicketStatus.USED
-            ticket.checked_in_at = checked_in_at
-            messages.success(request, 'Ticket checked in.')
-        else:
-            ticket.refresh_from_db(fields=['status', 'checked_in_at'])
-            messages.warning(request, 'This ticket was already checked in.')
+        from .gates import scan_for_event
+        body, status = scan_for_event(request.user, event_id, serial)
+        if status == 403:
+            raise PermissionDenied('Your gate access has ended.')
+        messages.success(request, 'Ticket checked in.') if body['ok'] else messages.warning(request, 'Entry denied: ' + body['result'].replace('_', ' ') + '.')
+        ticket.refresh_from_db()
     return render(request, 'tickets/verify.html', {'ticket': ticket})
 
 
+@never_cache
 @scanner_required
 def scanner(request):
-    """Continuous camera-based check-in for busy doors — point, scan, next."""
-    events = Event.objects.all() if is_admin(request.user) else Event.objects.filter(gate_assignments__user=request.user)
-    return render(request, 'tickets/scanner.html', {'assigned_events': events})
+    assignments = gate_assignments(request.user).select_related('event').order_by('starts_at')
+    assigned_ids = assignments.values_list('event_id', flat=True)
+    from django.db.models import Q
+    events = Event.objects.all() if is_admin(request.user) else Event.objects.filter(Q(owner=request.user) | Q(pk__in=assigned_ids))
+    page = Paginator(events.order_by('-start_at'), 20).get_page(request.GET.get('page'))
+    by_event = {a.event_id: a for a in assignments}
+    rows = [{'event': e, 'assignment': by_event.get(e.pk), 'can_scan': can_scan(request.user, e.pk),
+             'can_supervise': can_supervise(request.user, e)} for e in page]
+    return render(request, 'gates/events.html', {'rows': rows, 'page': page})
 
 
+@never_cache
 @scanner_required
+def scanner_event(request, event_id):
+    if not can_scan(request.user, event_id):
+        raise PermissionDenied('Your gate access is not active.')
+    if request.session.get('gate_event_id') != event_id:
+        return redirect('tickets:scanner')
+    event = get_object_or_404(Event, pk=event_id)
+    assignment = gate_assignments(request.user, active=True).filter(event=event).first()
+    return render(request, 'tickets/scanner.html', {'event': event, 'assignment': assignment,
+                                                  'can_supervise': can_supervise(request.user, event)})
+
+
+@login_required(login_url='accounts:login')
 @require_POST
 def scanner_check(request, serial):
-    """JSON check-in endpoint the in-page scanner calls after decoding each QR frame."""
+    from .gates import scan_for_event
     try:
-        ticket = Ticket.objects.select_related('order_item__ticket_type', 'order_item__order__event').get(serial=serial)
-    except (Ticket.DoesNotExist, ValueError):
-        return JsonResponse({'ok': False, 'result': 'not_found'}, status=404)
-
-    if not can_scan(request.user, ticket.order_item.order.event_id):
-        return JsonResponse({'ok': False, 'result': 'not_assigned'}, status=403)
-    if ticket.order_item.order.status != OrderStatus.PAID:
-        return JsonResponse({'ok': False, 'result': 'unpaid'}, status=409)
-
-    # Atomic conditional UPDATE — closes the double-admission race where the
-    # same QR (e.g. forwarded to a friend) is scanned at two doors at once.
-    # Only one concurrent request can match status=VALID and flip it to USED;
-    # the loser sees already_used, exactly as if it scanned a moment later.
-    checked_in_at = timezone.now()
-    updated = admit_ticket(ticket, request.user, checked_in_at)
-    if updated:
-        ticket.status = TicketStatus.USED
-        ticket.checked_in_at = checked_in_at
-        already_used = False
-    else:
-        ticket.refresh_from_db(fields=['status', 'checked_in_at'])
-        already_used = ticket.status == TicketStatus.USED
-
-    return JsonResponse({
-        'ok': bool(updated),
-        'result': 'already_used' if already_used else ticket.status,
-        'event_title': ticket.order_item.order.event.title,
-        'ticket_type': ticket.order_item.ticket_type.name,
-        'buyer_name': ticket.order_item.order.buyer_name,
-        'checked_in_at': ticket.checked_in_at.strftime('%H:%M:%S') if ticket.checked_in_at else None,
-    })
+        event_id = int(request.POST.get('event_id', ''))
+        if event_id <= 0 or event_id > 9223372036854775807:
+            raise ValueError
+    except (TypeError, ValueError):
+        return JsonResponse({'ok': False, 'result': 'select_event'}, status=400)
+    body, status = scan_for_event(request.user, event_id, serial)
+    return JsonResponse(body, status=status)
