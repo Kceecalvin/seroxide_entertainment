@@ -58,3 +58,9 @@ Alpine initialization. The final test exercises the actual scanner controller's
 wrong-event response and stopping the camera after access is revoked. Real phone
 camera hardware and real email delivery remain owner acceptance checks. TypeScript,
 JavaScript syntax, whitespace and migration-drift checks passed.
+
+The pre-release backup check caught an ownership issue from the earlier source
+archive: deploy/backup-full.sh retained a workstation owner with group-only read
+access. Correct application-tree ownership to serotix:serotix before activation;
+release.sh now enforces this. Rerun the backup service and verify success. The
+failed preflight happened before stopping or changing the live application.

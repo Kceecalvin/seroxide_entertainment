@@ -11,6 +11,10 @@ REPO_DIR="$APP_ROOT/app"
 VENV_DIR="$APP_ROOT/venv"
 APP_USER="serotix"
 
+# Archives may retain workstation numeric owners and group-only read access.
+# All application source/config must remain readable by the service account.
+chown -R "$APP_USER:$APP_USER" "$REPO_DIR"
+
 echo "==> Creating/updating virtualenv"
 sudo -u "$APP_USER" python3 -m venv "$VENV_DIR" 2>/dev/null || true
 sudo -u "$APP_USER" "$VENV_DIR/bin/pip" install -q --upgrade pip
