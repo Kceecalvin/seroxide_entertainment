@@ -29,6 +29,7 @@ pacman -S --needed --noconfirm \
     nginx \
     git \
     certbot certbot-nginx \
+    tesseract tesseract-data-eng \
     ufw \
     base-devel
 

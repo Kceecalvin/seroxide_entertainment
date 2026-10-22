@@ -90,3 +90,56 @@ test('promotion workspace exports adverts, saves an offer enquiry and admin trac
   await expect(page.locator('.promotion-request')).toContainText('Team has followed up');
   await context.close();
 });
+
+for(const unbroken of [false,true]){
+  test(`advert exports keep ${unbroken?'unbroken':'long'} event details clear of the QR and within the canvas`,async({page})=>{
+    await login(page);
+    await page.addInitScript(()=>{
+      (window as any).advertText=[];
+      const original=CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText=function(text,x,y,...rest){
+        if(this.canvas.width===1080){
+          const m=this.measureText(text);
+          (window as any).advertText.push({text,left:x-m.actualBoundingBoxLeft,right:x+m.actualBoundingBoxRight,
+            top:y-m.actualBoundingBoxAscent,bottom:y+m.actualBoundingBoxDescent});
+        }
+        return original.call(this,text,x,y,...rest);
+      };
+    });
+    await page.route('**/account/studio/*/promote/',async route=>{
+      const response=await route.fetch();
+      const body=(await response.text()).replace(/(<script id="promotion-ad-data" type="application\/json">)(.*?)(<\/script>)/s,(_match,start,raw,end)=>{
+        const data=JSON.parse(raw);
+        data.title=unbroken?'W'.repeat(200):'The East African Coastal Music and Arts Festival — A Celebration of Live Performances, Food, Culture and Community Featuring Independent Artists from Nairobi, Mombasa, Kilifi and Beyond';
+        data.venue=('The Waterfront Gardens and Open Air Amphitheatre, near the main entrance and northern beach access, ').repeat(3).slice(0,200)+', '+('Kilifi Coastal Arts District ').repeat(4).slice(0,100);
+        data.organizer=('Coastal Music Arts and Community Collective ').repeat(4).slice(0,150);
+        return start+JSON.stringify(data)+end;
+      });
+      await route.fulfill({response,body});
+    });
+    await page.goto('/account/studio/');
+    await page.locator('.market-event').filter({has:page.getByRole('heading',{name:'Coastal Sound Festival',exact:true})}).getByRole('link',{name:'Promote ↗',exact:true}).click();
+    for(const format of ['square','story']){
+      await page.evaluate(()=>{(window as any).advertText=[];});
+      const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:`Download ${format} advert`}).click()]);
+      const path=`/tmp/serotix-advert-${unbroken?'unbroken':'long'}-${format}.png`;
+      await download.saveAs(path);
+      const height=format==='story'?1920:1080;
+      const rows=await page.evaluate(()=>(window as any).advertText as Array<{text:string,left:number,right:number,top:number,bottom:number}>);
+      expect(rows.length).toBeGreaterThan(8);
+      for(const row of rows){
+        expect(row.left,row.text).toBeGreaterThanOrEqual(0);
+        expect(row.right,row.text).toBeLessThanOrEqual(1080);
+        expect(row.top,row.text).toBeGreaterThanOrEqual(0);
+        expect(row.bottom,row.text).toBeLessThanOrEqual(height);
+        expect(row.right>816&&row.left<1016&&row.bottom>height-240&&row.top<height-40,`QR overlaps ${row.text}`).toBe(false);
+      }
+      for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++){
+        const a=rows[i],b=rows[j];
+        expect(a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top,`Text overlaps: ${a.text} / ${b.text}`).toBe(false);
+      }
+      if(unbroken)await expect(page.locator('[data-export-status]')).toContainText('Shortened to fit:');
+      else expect(rows.map(row=>row.text).join(' ')).toContain('Kilifi and Beyond');
+    }
+  });
+}

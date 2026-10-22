@@ -16,19 +16,40 @@
   if(!controls||!board||!image||!raw)return;
   const data=JSON.parse(raw.textContent);
   controls.hidden=false;
-  function wrapped(context,text,x,y,maxWidth,lineHeight,maxLines=3){
-    const words=String(text).split(/\s+/);let line='',lines=[];
-    for(const word of words){
-      if(context.measureText((line?line+' ':'')+word).width>maxWidth&&line){lines.push(line);line=word;}
-      else line+=(line?' ':'')+word;
+  function linesFor(context,text,width){
+    const lines=[];let line='';
+    for(const word of String(text).trim().split(/\s+/)){
+      const candidate=line?line+' '+word:word;
+      if(context.measureText(candidate).width<=width){line=candidate;continue;}
+      if(line){lines.push(line);line='';}
+      // Long names and URLs must also fit, even when they contain no spaces.
+      for(const character of word){
+        if(line&&context.measureText(line+character).width>width){lines.push(line);line='';}
+        line+=character;
+      }
     }
     if(line)lines.push(line);
+    return lines;
+  }
+  function fitted(context,text,{x=64,y,width=952,height,size,minSize=size,bold=false}){
+    let lines,lineHeight;
+    for(;;){
+      context.font=`${bold?'bold ':''}${size}px Arial`;
+      lineHeight=Math.ceil(size*1.2);
+      lines=linesFor(context,text,width);
+      if(lines.length*lineHeight<=height||size<=minSize)break;
+      size=Math.max(minSize,size-2);
+    }
+    const maxLines=Math.max(1,Math.floor(height/lineHeight));
+    const shortened=lines.length>maxLines;
     lines=lines.slice(0,maxLines);
-    lines.forEach(value=>{
-      while(context.measureText(value).width>maxWidth&&value.length>1)value=value.slice(0,-2)+'…';
-      context.fillText(value,x,y);y+=lineHeight;
-    });
-    return y;
+    if(shortened){
+      const last=Array.from(lines.at(-1));
+      while(last.length&&context.measureText(last.join('')+'…').width>width)last.pop();
+      lines[lines.length-1]=last.join('')+'…';
+    }
+    lines.forEach((line,index)=>context.fillText(line,x,y+size+index*lineHeight));
+    return shortened;
   }
   controls.querySelectorAll('button').forEach(button=>button.addEventListener('click',async()=>{
     const status=document.querySelector('[data-export-status]');
@@ -46,26 +67,38 @@
       const gradient=ctx.createLinearGradient(0,0,1080,canvas.height);gradient.addColorStop(0,base);gradient.addColorStop(1,'#080b12');
       ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,canvas.height);
       ctx.fillStyle=glow;ctx.globalAlpha=.25;ctx.beginPath();ctx.arc(1050,80,320,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-      ctx.fillStyle=accent;ctx.font='bold 24px Arial';wrapped(ctx,data.organizer.toUpperCase(),64,64,740,30,1);
+      const shortened=[];
+      const draw=(label,text,options)=>{if(fitted(ctx,text,options))shortened.push(label);};
+      ctx.fillStyle=accent;
+      draw('organizer name',data.organizer.toUpperCase(),{y:40,width:740,height:30,size:24,minSize:18,bold:true});
+      ctx.font='bold 24px Arial';
       ctx.textAlign='right';ctx.fillText('serotix',1016,64);ctx.textAlign='left';
-      const area={x:64,y:105,w:952,h:story?1190:515};
+      const area={x:64,y:105,w:952,h:story?1120:450};
       ctx.fillStyle='#080b12';ctx.fillRect(area.x,area.y,area.w,area.h);
       const scale=Math.min(area.w/image.naturalWidth,area.h/image.naturalHeight);
       const w=image.naturalWidth*scale,h=image.naturalHeight*scale;
       ctx.drawImage(image,area.x+(area.w-w)/2,area.y+(area.h-h)/2,w,h);
-      let y=area.y+area.h+48;
-      ctx.fillStyle=accent;ctx.font='bold 20px Arial';wrapped(ctx,data.category.toUpperCase(),64,y,952,24,1);y+=44;
-      ctx.fillStyle='#f4f0e6';ctx.font='bold '+(story?64:48)+'px Arial';y=wrapped(ctx,data.title,64,y,952,story?72:54,story?3:2)+14;
-      ctx.fillStyle='#c6d1e3';ctx.font='26px Arial';y=wrapped(ctx,data.date,64,y,952,32,1);y=wrapped(ctx,data.venue,64,y,data.qr?720:952,32,2)+25;
-      ctx.fillStyle=accent;ctx.font='bold 28px Arial';ctx.fillText(data.cta+' ↗',64,Math.min(y,canvas.height-80));
-      ctx.fillStyle='#b0bfd6';ctx.font='18px Arial';wrapped(ctx,data.url||'Public booking link available after publication',64,canvas.height-35,data.qr?730:952,22,1);
+      // Separate text regions reserve space for the QR and prevent long details
+      // from pushing the call to action or link outside the exported image.
+      const textWidth=data.qr?720:952;
+      ctx.fillStyle=accent;
+      draw('category',data.category.toUpperCase(),{y:story?1253:583,height:28,size:20,bold:true});
+      ctx.fillStyle='#f4f0e6';
+      draw('event name',data.title,{y:story?1290:619,height:story?264:148,size:story?64:48,minSize:26,bold:true});
+      ctx.fillStyle='#c6d1e3';
+      draw('date',data.date,{y:story?1580:789,width:textWidth,height:36,size:26,minSize:22});
+      draw('venue',data.venue,{y:story?1630:835,width:textWidth,height:story?144:100,size:26,minSize:20});
+      ctx.fillStyle=accent;
+      draw('call to action',data.cta+' ↗',{y:story?1806:954,width:textWidth,height:40,size:28,bold:true});
+      ctx.fillStyle='#b0bfd6';
+      draw('event link',data.url||'Public booking link available after publication',{y:canvas.height-65,width:textWidth,height:48,size:18,minSize:16});
       if(data.qr){
         const qr=new Image();qr.src=data.qr;await qr.decode();
         ctx.imageSmoothingEnabled=false;ctx.drawImage(qr,816,canvas.height-240,200,200);
       }
       const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('Export failed')),'image/png'));
       const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`${data.slug}-${story?'story':'square'}.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
-      status.textContent=`${story?'Story':'Square'} advert downloaded. Review the details before sharing.`;
+      status.textContent=`${story?'Story':'Square'} advert downloaded. `+(shortened.length?`Shortened to fit: ${shortened.join(', ')}. Review the download and sharing caption before sharing.`:'Review the details before sharing.');
     }catch{status.textContent='The advert could not be exported. Try reloading the page or use your original poster.';}
     finally{controls.querySelectorAll('button').forEach(b=>b.disabled=false);}
   }));
